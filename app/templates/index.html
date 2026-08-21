@@ -1,11 +1,18 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
-  <body>
-    <h1>this is home page</h1>
-  </body>
-</html>
+{%extends 'base.html' %} {%block title %} Home Page {%endblock%}{% block content
+%}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-7">
+    <!-- Landing card: just a short entry point into the app. -->
+    <div class="surface-card p-4 p-lg-5 shadow-sm">
+      <p class="section-label mb-2">Prototype</p>
+      <h1 class="display-6 fw-semibold mb-3">
+        Smart Student Performance System
+      </h1>
+      <p class="text-white mb-4">
+        Administrator and Teacher access for student records and prediction.
+      </p>
+      <a class="btn btn-primary px-4" href="{{url_for('main.login')}}">Login</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
