@@ -21,8 +21,8 @@ def create_app():
 
         try:
             user_count = User.query.count()
-        except Exceptions:
-            db.session.rollbacl()
+        except Exception:
+            db.session.rollback()
             db.drop_all()
             db.create_all()
             user_count = 0
