@@ -1,4 +1,6 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for, session
+from functools import wraps
+
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
 from .extensions import db
@@ -12,6 +14,28 @@ main = Blueprint("main", __name__)
 def index():
     return render_template("index.html")
 
+# function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(**args,*kwargs):
+        if "user_id" not in session:
+            return redirect(url_for('main.login'))
+        return view(**args, **kwargs)
+    return wrapped_view
+
+# fucntion to check if the user has the required role to access the view . If not, redirect to the index page. If yes, allow access to the the view
+def role_required(*allowed_roles):
+    def decorator(view):
+        @wraps(view)
+        def wrapped_view(*args,**kwargs):
+            if "role" not in session or session['role'] not in allowed_roles:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('main.index'))
+            return view(*args,**kwargs)
+        return wrapped_view
+    return decorator    
+
+# setting up main route and making sure user is logged in and is saved in session and has the correct role
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
@@ -30,7 +54,7 @@ def login():
 
     return render_template("login.html")
 
-
+# route for the loggin out of the app. This will clear the session and redirect to the login page
 @main.route("/logout")
 def logout():
     session.clear()
