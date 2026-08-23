@@ -25,24 +25,5 @@ def create_app():
             db.session.rollback()
             db.drop_all()
             db.create_all()
-            user_count = 0
 
-        if user_count == 0:
-            db.session.add_all(
-                [
-                    User(
-                        username="admin",
-                        password_hash=generate_password_hash("admin123"),
-                        role="Administrator",
-                        email="admin@email.com",
-                    ),
-                    User(
-                        username="teacher",
-                        password_hash=generate_password_hash("teacher123"),
-                        role="teacher",
-                        email="teacher@email.com",
-                    ),
-                ]
-            )
-            db.session.commit()
     return app
