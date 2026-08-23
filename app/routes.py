@@ -80,6 +80,7 @@ def login():
     return render_template("login.html")
 
 
+# route for the registration page. This will allow the user to register as an admin or teacher. If the user is already logged in, they will be redirected to the dashboard.
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -92,8 +93,6 @@ def register():
         if not username or not email or not password or not confirm_password:
             flash("All fields are required.", "danger")
             return redirect(url_for("main.register"))
-
-
 
         if role_input == "admin":
             role = "Administrator"
@@ -122,7 +121,6 @@ def register():
         )
         db.session.add(user)
         db.session.commit()
-
 
         flash("Registration successful. Please log in.", "success")
         return redirect(url_for("main.dashboard"))
