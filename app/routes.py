@@ -1,5 +1,5 @@
 from functools import wraps
-
+from pathlib import Path
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash
 
@@ -50,6 +50,11 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
+
+        user = User.query.filter(
+            (User.username == username) | (User.email == username)
+        ).first()
+
         user = User.query.filter_by(username=username).first()
 
         if user and check_password_hash(user.password_hash, password):
@@ -109,5 +114,17 @@ def admin_students():
         flash("Student added successfully.", "success")
         return redirect(url_for("main.admin_students"))
 
-    students = Students.query.all()
+    students = Students.query.order_by(Students.id.desc()).all()
     return render_template("admin_students.html", students=students)
+
+
+
+@main.route('/teacher/predict',methods=["POST"])
+@login_required
+@role_required("Teacher")
+def teacher_predict():
+    
+
+
+
+

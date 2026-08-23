@@ -34,11 +34,13 @@ def create_app():
                         username="admin",
                         password_hash=generate_password_hash("admin123"),
                         role="Administrator",
+                        email="admin@email.com",
                     ),
                     User(
                         username="teacher",
                         password_hash=generate_password_hash("teacher123"),
                         role="teacher",
+                        email="teacher@email.com",
                     ),
                 ]
             )
