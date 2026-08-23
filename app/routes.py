@@ -123,9 +123,6 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        session["user_id"] = user.id
-        session["username"] = user.username
-        session["role"] = user.role
 
         flash("Registration successful. Please log in.", "success")
         return redirect(url_for("main.dashboard"))
