@@ -176,6 +176,10 @@ body {
   background: var(--bg-input);
   color: var(--text-bright);
 }
+.form-control-soft::placeholder {
+  color: #adb5bd;
+  opacity: 1;
+}
 
 /* Buttons */
 
@@ -201,6 +205,39 @@ body {
   background: var(--border-subtle);
   border-color: var(--border-hover);
   color: var(--text-bright);
+}
+
+/* tables */
+
+.table {
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom-width: 1px;
+  border-color: var(--border-subtle);
+}
+
+.table tbody td {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-color: var(--border-subtle);
+}
+
+.table,
+.table td,
+.table th {
+  background: transparent;
+}
+
+.table-responsive {
+  border-radius: var(--radius-xl);
 }
 
 /* Utilities & overrides */

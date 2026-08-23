@@ -1,18 +1,85 @@
-{%extends 'base.html'%} {%block title%} Students | Smart Student Performance
+{%extends 'base.html'%} {%block title%}Students | Smart Student Performance
 System{%endblock%} {%block content%}
-<div class="row g-4 align-items-center justify-content-center">
-  <div class="col-lg-8 col-xl-7">
-    <div class="surface-card p-4 p-lg-5 shadow-sm">
+<div class="row g-5 align-items-start justify-content-center">
+  <div class="col-lg-4">
+    <div class="surface-card p-4 shadow-md">
       <p class="section-label mb-2">Administrator</p>
-      <h1 class="h3 fw-semibold">Students</h1>
-      <p class="text-muted mb-4">Add students and view the student list</p>
-      <a class="btn btn-primary px-4" href="{{url_for('main.add_student')}}"
-        >Add Student</a
-      >
-      <a class="btn btn-secondary px-4" href="{{url_for('main.dashboard')}}"
-        >Back to Dashboard</a
-      >
+      <h1 class="h4 fw-semibold">Add Students</h1>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label" for="roll_number">Roll Number</label>
+          <input
+            class="form-control form-control-soft"
+            type="text"
+            name="roll_number"
+            id="roll_number"
+            placeholder="e.g. BC230516165"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="name" class="from-label">Name</label>
+          <input
+            class="form-control form-control-soft"
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Student name"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="class_name">Class</label>
+          <input
+            class="form-control form-control-soft"
+            type="text"
+            name="class_name"
+            id="class_name"
+            placeholder="BSSE 1A"
+            required
+          />
+        </div>
+        <button class="btn btn-primary w-100" type="submit">Add Student</button>
+      </form>
     </div>
   </div>
+  <div class="col-lg-8">
+    <div class="surface-card p-4 shadow-md">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <p class="section-label mb-2">Student List</p>
+          <h2 class="h4 fw-semibold mb-0">Saved Students</h2>
+        </div>
+        <a  class='btn btn-outline-secondary btn-sm'href={{url_for('main.dashboard')}}>Back</a>
+        </div>
+        {% if students %}
+        <div class="table-responsive">
+          <table class='table align-middle mb-0 '>
+            <thead >
+            <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                <th>Class</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for student in students %}
+              <tr>
+                <td class='text-white'>{{student.roll_number}}</td>
+                <td  class='text-white'>
+                  {{student.name}}
+                </td>
+                <td  class='text-white'>{{student.class_name}}</td>
+              </tr>
+              {%endfor%}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No students found.</p>
+        {% endif %}
+      </div>
+    </div>
+  
 </div>
 {%endblock%}

@@ -85,16 +85,29 @@ def dashboard():
     return redirect(url_for("main.index"))
 
 
-@main.route("/admin/students")
+@main.route("/admin/students", methods=["GET", "POST"])
 @login_required
 @role_required("Administrator")
 def admin_students():
+
+    if request.method == "POST":
+        roll_number = request.form.get("roll_number", "").strip()
+        name = request.form.get("name", "").strip()
+        class_name = request.form.get("class_name", "").strip()
+
+        if not roll_number or not name or not class_name:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("main.admin_students"))
+        existing_student = Students.query.filter_by(roll_number=roll_number).first()
+        if existing_student:
+            flash("Student with this roll number already exists.", "danger")
+            return redirect(url_for("main.admin_students"))
+
+        student = Students(roll_number=roll_number, name=name, class_name=class_name)
+        db.session.add(student)
+        db.session.commit()
+        flash("Student added successfully.", "success")
+        return redirect(url_for("main.admin_students"))
+
     students = Students.query.all()
     return render_template("admin_students.html", students=students)
-
-
-@main.route("/admin/students/add")
-@login_required
-@role_required("Administrator")
-def add_student():
-    return render_template("add_students.html")
