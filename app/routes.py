@@ -55,8 +55,6 @@ def login():
             (User.username == username) | (User.email == username)
         ).first()
 
-        user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password_hash, password):
             session["user_id"] = user.id
             session["username"] = user.username
@@ -118,13 +116,12 @@ def admin_students():
     return render_template("admin_students.html", students=students)
 
 
-
-@main.route('/teacher/predict',methods=["POST"])
-@login_required
-@role_required("Teacher")
-def teacher_predict():
-    
-
-
-
-
+#
+# @main.route('/teacher/predict',methods=["POST"])
+# @login_required
+# @role_required("Teacher")
+# def teacher_predict():
+#
+#
+#
+#
