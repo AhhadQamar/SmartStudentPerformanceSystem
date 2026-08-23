@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme={{theme}}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,20 +14,22 @@
     />
   </head>
   <body class="app-shell">
-    <nav class="navbar bg-dark navbar-expand-lg navbar-dark app-navbar">
+    <nav class="navbar  navbar-expand-lg navbar-dark app-navbar">
       <div class="container py-3">
         <a class="navbar-brand  " href="{{url_for('main.index')}}">
-          <span class="brand-mark  d-inline-flex align-items-baseline fw-bold  px-4 py-1 me-2 ">
+          <span class="brand-mark   d-inline-flex align-items-baseline fw-bold  px-4 py-1 me-2 ">
           <span class='h5 fw-semibold'>S</span>
-          <span class = 'h7 text-white'>2</span>
-<span class='h5 fw-semibold'>
+          <span class = 'text-white h6 '>2</span>
+<span class=' h5 fw-semibold'>
           P
 </span>
           </span>
           <span>Smart Student Performance Prediction</span>
         </a>
+
+
         <div class="ms-auto d-flex gap-2 algin-items-center">
-          {% if session.get('user_id') %}
+                 {% if session.get('user_id') %}
           <span class="badge rounded-pill text-bg-light text-dark py-2 px-3 fw-semibold" 
             >{{ session.get('role').capitalize()}}</span
           >
@@ -35,6 +37,13 @@
           {% else %}
           <a class="btn btn-outline-light btn-sm px-3" href="{{url_for('main.login')}}">Login</a>
           {% endif %}
+
+          {% if theme == 'dark' %}
+          <a class="btn btn-outline-light btn-sm px-3" href="{{url_for('main.set_theme', theme='light')}}">☀️</a>
+          {% else %}
+          <a class="btn btn-outline-light btn-sm px-3" href="{{url_for('main.set_theme', theme='dark')}}">🌙</a>
+          {% endif %}
+
         </div>
       </div>
     </nav>

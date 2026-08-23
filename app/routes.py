@@ -9,6 +9,19 @@ from .models import Students, User
 main = Blueprint("main", __name__)
 
 
+@main.route("/set-theme/<theme>")
+def set_theme(theme):
+    if theme not in ("dark", "light"):
+        theme = "dark"
+    session["theme"] = theme
+    return redirect(request.referrer or url_for("main.index"))
+
+
+@main.context_processor
+def inject_theme():
+    return {"theme": session.get("theme", "dark")}
+
+
 # function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
 def login_required(view):
     @wraps(view)

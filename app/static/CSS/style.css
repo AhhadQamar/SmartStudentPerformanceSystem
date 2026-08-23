@@ -1,27 +1,26 @@
-:root {
+:root,
+[data-theme="dark"] {
   /* backgrounds */
-  --bg-base: #1d2021;
-  --bg-surface: #282828;
-  --bg-navbar: #1f1f1f;
-  --bg-input: #1d2021;
-  --bg-result: #1f1f1f;
+  --bg-base: #1a1b26;
+  --bg-surface: #24283b;
+  --bg-navbar: #16161e;
+  --bg-input: #1a1b26;
+  --bg-result: #1f2335;
 
   /* borders */
-  --border-subtle: #3c3836;
-  --border-input: #504945;
-  --border-muted: #7c6f64;
-  --border-hover: #928374;
+  --border-subtle: #292e42;
+  --border-input: #3b4261;
+  --border-muted: #565f89;
+  --border-hover: #737aa2;
 
   /* text */
-  --text-primary: #ebdbb2;
-  --text-bright: #fbf1c7;
-  --text-muted: #928374;
+  --text-primary: #c0caf5;
+  --text-bright: #f4f4f9;
+  --text-muted: #565f89;
 
   /* accents */
-  --accent-yellow: #fabd2f;
-  --accent-orange: #fe8019;
-  --accent-teal: #458588;
-  --accent-teal-dark: #3c6e70;
+  --accent-teal: #7dcfff;
+  --accent-teal-dark: #2ac3de;
 
   /* misc */
   --radius-sm: 0.65rem;
@@ -30,8 +29,44 @@
   --radius-xl: 1rem;
 }
 
-/* main styl */
+[data-theme="light"] {
+  /* backgrounds */
+  --bg-base: #e1e2e7;
+  --bg-surface: #ffffff;
+  --bg-navbar: #d5d6db;
+  --bg-input: #ffffff;
+  --bg-result: #f4f4f8;
 
+  /* borders */
+  --border-subtle: #c4c8da;
+  --border-input: #a8b0c6;
+  --border-muted: #8993b8;
+  --border-hover: #6b7394;
+
+  /* text */
+  --text-primary: #343b58;
+  --text-bright: #14161e;
+  --text-muted: #6b7394;
+
+  /* accents */
+  --accent-teal: #2ac3de;
+  --accent-teal-dark: #0f7590;
+
+  /* misc — unchanged */
+  --radius-sm: 0.65rem;
+  --radius-md: 0.8rem;
+  --radius-lg: 0.9rem;
+  --radius-xl: 1rem;
+}
+
+/* smooth switch */
+body {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* main styles */
 body {
   min-height: 100vh;
   background: var(--bg-base);
@@ -42,8 +77,8 @@ body {
   display: flex;
   flex-direction: column;
 }
-/* Navbar */
 
+/* Navbar */
 .app-navbar {
   background: var(--bg-navbar);
   border-bottom: 1px solid var(--border-subtle);
@@ -74,7 +109,7 @@ body {
 .app-navbar .badge {
   padding: 0.45rem 0.75rem;
   font-weight: 500;
-  background: var(--accent-yellow) !important;
+  background: var(--accent-teal) !important;
   color: var(--bg-base) !important;
 }
 
@@ -86,13 +121,13 @@ body {
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius-sm);
-  background: var(--accent-orange);
+  background: var(--accent-teal-dark);
   color: var(--bg-base);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-/* Alerts & cards  */
+/* Alerts & cards */
 .alert-soft {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -128,7 +163,6 @@ body {
 }
 
 /* Typography */
-
 .section-label {
   font-size: 0.72rem;
   font-weight: 700;
@@ -161,7 +195,6 @@ body {
 }
 
 /* Form controls */
-
 .form-control-soft {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-input);
@@ -172,27 +205,27 @@ body {
 
 .form-control-soft:focus {
   box-shadow: none;
-  border-color: var(--accent-yellow);
+  border-color: var(--accent-teal);
   background: var(--bg-input);
   color: var(--text-bright);
 }
+
 .form-control-soft::placeholder {
   color: #adb5bd;
   opacity: 1;
 }
 
 /* Buttons */
-
 .btn-primary {
-  background: var(--accent-teal);
-  border: 1px solid var(--accent-teal);
+  background: var(--accent-teal-dark);
+  border: 1px solid var(--accent-teal-dark);
   box-shadow: none;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background: var(--accent-teal-dark);
-  border-color: var(--accent-teal-dark);
+  background: var(--accent-teal);
+  border-color: var(--accent-teal);
 }
 
 .btn-outline-secondary {
@@ -207,8 +240,7 @@ body {
   color: var(--text-bright);
 }
 
-/* tables */
-
+/* Tables */
 .table {
   color: var(--text-primary);
   margin-bottom: 0;
@@ -241,7 +273,6 @@ body {
 }
 
 /* Utilities & overrides */
-
 .bg-white,
 .bg-light {
   background: transparent !important;

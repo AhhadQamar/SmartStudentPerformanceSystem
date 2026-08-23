@@ -65,12 +65,24 @@ System{%endblock%} {%block content%}
             <tbody>
               {% for student in students %}
               <tr>
-                <td class='text-white'>{{student.roll_number}}</td>
-                <td  class='text-white'>
+              {%if theme == 'dark'%}
+                <td class="text-white">{{student.roll_number}}</td>
+               {%else%}
+                <td>{{student.roll_number}}</td>
+              {%endif%}
+                {%if theme == 'dark'%}
+                <td class="text-white">{{student.name}}</td>
+                {%else%}
+                <td >
                   {{student.name}}
                 </td>
-                <td  class='text-white'>{{student.class_name}}</td>
+              {%endif%}
+              {% if theme == 'dark'%}
+                <td class="text-white">{{student.class_name}}</td>
+              {% else %}
+                <td >{{student.class_name}}</td>
               </tr>
+              {% endif %}
               {%endfor%}
             </tbody>
           </table>
