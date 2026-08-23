@@ -70,6 +70,9 @@ def logout():
     return redirect(url_for("main.login"))
 
 
+# route for the dashboard. This will check the role of the user and render the appropriate dashboard template. If the user does not have permission, they will be redirected to the index page with a flash message.
+
+
 @main.route("/dashboard")
 @login_required
 def dashboard():
@@ -80,3 +83,18 @@ def dashboard():
         return render_template("teacher_dashboard.html")
     flash("You do not have permission to access this page.", "danger")
     return redirect(url_for("main.index"))
+
+
+@main.route("/admin/students")
+@login_required
+@role_required("Administrator")
+def admin_students():
+    students = Students.query.all()
+    return render_template("admin_students.html", students=students)
+
+
+@main.route("/admin/students/add")
+@login_required
+@role_required("Administrator")
+def add_student():
+    return render_template("add_students.html")
