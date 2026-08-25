@@ -5,6 +5,16 @@ echo " Smart Student Performance System"
 echo "=================================="
 
 echo ""
+echo "Creating virtual environment..."
+python -m venv .venv || exit 1
+echo "  done"
+
+echo ""
+echo "Activating virtual environment..."
+source .venv/bin/activate || exit 1
+echo "  done"
+
+echo ""
 echo "Installing packages..."
 echo ""
 
