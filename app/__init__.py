@@ -19,11 +19,4 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-        try:
-            user_count = User.query.count()
-        except Exception:
-            db.session.rollback()
-            db.drop_all()
-            db.create_all()
-
     return app
