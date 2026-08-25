@@ -1,12 +1,36 @@
 # Smart Student Performance System
-**Linux / Mac:**
+
+## How to run
+
+**1. Create a virtual environment**
 ```bash
-bash setup.sh
+python -m venv .venv
 ```
 
-**Windows (Git Bash):**
+**2. Activate it**
+
+Linux / Mac:
 ```bash
-bash setup.sh
+source .venv/bin/activate
+```
+Windows:
+```bash
+.venv\Scripts\activate
 ```
 
-This will install everything and start the app at `http://127.0.0.1:5000`.
+**3. Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Train the model**
+```bash
+python scripts/train_model.py
+```
+
+**5. Start the app**
+```bash
+flask run
+```
+
+Open `http://127.0.0.1:5000` in your browser.
