@@ -1,5 +1,13 @@
 # Smart Student Performance System
 
+If you run into any issues or need a fresh copy of the code:
+
+```bash
+git clone https://github.com/AhhadQamar/SmartStudentPerformanceSystem.git
+```
+
+---
+
 ## How to run
 
 **1. Create a virtual environment**
