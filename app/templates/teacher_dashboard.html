@@ -5,8 +5,7 @@
     <div class="surface-card p-4 p-lg-5 shadow-sm">
       <p class="section-label mb-2">Teacher</p>
       <h1 class="h3 fw-semibold mb-4">Prediction</h1>
-
-      <form method="post" action="{{url_for('main.teacher_predict')}}" >
+      <form method="post" action="{{url_for('main.teacher_predict')}}">
         <div class="mb-3">
           <label class="form-label" for="student_id">Student</label>
           <select class="form-select form-control-soft" id="student_id" name="student_id" required>
@@ -16,7 +15,6 @@
             {% endfor %}
           </select>
         </div>
-
         <div class="row g-2">
           <div class="col-md-6">
             <label class="form-label" for="attendance">Attendance %</label>
@@ -24,21 +22,20 @@
           </div>
           <div class="col-md-6">
             <label class="form-label" for="quiz">Quiz</label>
-            <input class="form-control form-control-soft" id="quiz" name="quiz" type="number" min="0" max="100" step="0.1" placeholder="0-100" required>
+            <input class="form-control form-control-soft" id="quiz" name="quiz" type="number" min="0" max="50" step="0.1" placeholder="0-50" required>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="assignment">Assignment</label>
-            <input class="form-control form-control-soft" id="assignment" name="assignment" type="number" min="0" max="100" step="0.1" placeholder="0-100" required>
+            <input class="form-control form-control-soft" id="assignment" name="assignment" type="number" min="0" max="25" step="0.1" placeholder="0-25" required>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="midterm">Midterm</label>
             <input class="form-control form-control-soft" id="midterm" name="midterm" type="number" min="0" max="100" step="0.1" placeholder="0-100" required>
           </div>
         </div>
-
         <button class="btn btn-primary mt-4 px-4" type="submit">Predict</button>
       </form>
     </div>
   </div>
 </div>
-{%endblock%} 
+{%endblock%}

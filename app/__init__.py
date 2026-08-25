@@ -11,7 +11,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///students.db"
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = "your_secret_key"
+    app.config["SECRET_KEY"] = "bc230216165"
 
     db.init_app(app)
     app.register_blueprint(main)
