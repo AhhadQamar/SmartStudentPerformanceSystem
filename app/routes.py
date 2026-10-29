@@ -1,8 +1,10 @@
+import pickle
 from functools import wraps
 from pathlib import Path
-import pickle
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
+
 from .extensions import db
 from .models import Students, User
 from .utils import calculate_percentage

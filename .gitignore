@@ -3,4 +3,5 @@ __pycache__/
 .venv/
 venv/
 instance/
+.direnv/
 student_performance.d
