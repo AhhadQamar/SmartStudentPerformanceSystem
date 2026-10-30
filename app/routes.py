@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
 from .models import Students, User
 from .utils import calculate_percentage
@@ -101,9 +102,9 @@ def register():
             flash("All fields are required.", "danger")
             return redirect(url_for("main.register"))
         if role_input == "admin":
-            role = "Administrator"
+            role = ROLE_ADMIN
         elif role_input == "teacher":
-            role = "teacher"
+            role = ROLE_TEACHER
         else:
             flash("Invalid role selected.", "danger")
             return redirect(url_for("main.register"))
@@ -142,9 +143,9 @@ def logout():
 @login_required
 def dashboard():
     role = session.get("role")
-    if role == "Administrator":
+    if role == ROLE_ADMIN:
         return render_template("admin_dashboard.html")
-    if role == "teacher":
+    if role == ROLE_TEACHER:
         students = Students.query.order_by(Students.id.desc()).all()
         return render_template("teacher_dashboard.html", students=students)
     flash("You do not have permission to access this page.", "danger")
@@ -154,7 +155,7 @@ def dashboard():
 # route for the admin to manage students. This will allow the admin to add new students and view the list of existing students. If the user does not have permission, they will be redirected to the index page with a flash message.
 @main.route("/admin/students", methods=["GET", "POST"])
 @login_required
-@role_required("Administrator")
+@role_required(ROLE_ADMIN)
 def admin_students():
     if request.method == "POST":
         roll_number = request.form.get("roll_number", "").strip()
@@ -178,7 +179,7 @@ def admin_students():
 
 @main.route("/teacher/predict", methods=["POST"])
 @login_required
-@role_required("teacher")
+@role_required(ROLE_TEACHER)
 def teacher_predict():
     student_id = request.form.get("student_id", "").strip()
     attendance = request.form.get("attendance", "").strip()
