@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
-from .models import Students, User
+from .models import Student, User
 from .utils import calculate_percentage
 
 # setting up the main blueprint for the app.
@@ -146,7 +146,7 @@ def dashboard():
     if role == ROLE_ADMIN:
         return render_template("admin_dashboard.html")
     if role == ROLE_TEACHER:
-        students = Students.query.order_by(Students.id.desc()).all()
+        students = Student.query.order_by(Student.id.desc()).all()
         return render_template("teacher_dashboard.html", students=students)
     flash("You do not have permission to access this page.", "danger")
     return redirect(url_for("main.index"))
@@ -157,23 +157,36 @@ def dashboard():
 @login_required
 @role_required(ROLE_ADMIN)
 def admin_students():
+    # POST = the admin submitted the "Add Student" form.
     if request.method == "POST":
         roll_number = request.form.get("roll_number", "").strip()
         name = request.form.get("name", "").strip()
-        class_name = request.form.get("class_name", "").strip()
-        if not roll_number or not name or not class_name:
+        email = request.form.get("email", "").strip()
+        contact = request.form.get("contact", "").strip()
+
+        # Reject the form if any field is empty.
+        if not roll_number or not name or not email or not contact:
             flash("All fields are required.", "danger")
             return redirect(url_for("main.admin_students"))
-        existing_student = Students.query.filter_by(roll_number=roll_number).first()
-        if existing_student:
+
+        # The database refuses duplicates, so we check first and show a friendly message.
+        if Student.query.filter_by(roll_number=roll_number).first():
             flash("Student with this roll number already exists.", "danger")
             return redirect(url_for("main.admin_students"))
-        student = Students(roll_number=roll_number, name=name, class_name=class_name)
-        db.session.add(student)
-        db.session.commit()
+        if Student.query.filter_by(email=email).first():
+            flash("Student with this email already exists.", "danger")
+            return redirect(url_for("main.admin_students"))
+
+        student = Student(
+            roll_number=roll_number, name=name, email=email, contact=contact
+        )
+        db.session.add(student)  # stage the new row
+        db.session.commit()  # actually save it to the database
         flash("Student added successfully.", "success")
         return redirect(url_for("main.admin_students"))
-    students = Students.query.order_by(Students.id.desc()).all()
+
+    # GET = just show the page with the list of students.
+    students = Student.query.order_by(Student.id.desc()).all()
     return render_template("admin_students.html", students=students)
 
 
@@ -189,7 +202,7 @@ def teacher_predict():
     if not student_id or not attendance or not quiz or not assignment or not midterm:
         flash("All fields are required.", "danger")
         return redirect(url_for("main.dashboard"))
-    student = Students.query.get(student_id)
+    student = Student.query.get(student_id)
     if not student:
         flash("Student not found.", "danger")
         return redirect(url_for("main.dashboard"))
