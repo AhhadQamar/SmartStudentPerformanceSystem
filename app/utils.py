@@ -1,5 +1,7 @@
 # Small helper functions that the routes can call.
 
+from sqlalchemy.sql.roles import TruncatedLabelRole
+
 from .config_grading import GRADE_SCALE, MAX_MARKS, WEIGHTS
 
 
@@ -51,6 +53,32 @@ def calculate_grade(quiz, assignment, midterm, final):
         "percentage": percentage,
         "grade": percentage_to_grade(percentage),
     }
+
+
+def check_password_rules(password):
+    # returns none is the password if fine or a message saying what is wrong with it.
+    if len(password) < 8:
+        return "Password must be at least 8 characters long."
+    #  walk through evey character and check if it has at least one uppercase, one lowercase and one digit
+    has_upper = False
+    has_lower = False
+    has_digit = False
+    has_special = False
+    for char in password:
+        if char.isupper():
+            has_upper = True
+        elif char.islower():
+            has_lower = True
+        elif char.isdigit():
+            has_digit = True
+
+    if not has_upper:
+        return "Password must contain at least one uppercase letter."
+    if not has_lower:
+        return "Password must contain at least one lowercase letter."
+    if not has_digit:
+        return "Password must contain at least one digit."
+    return None  # password is fine
 
 
 # OLD PROTOTYPE Code
