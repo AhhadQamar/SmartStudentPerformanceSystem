@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
 from .models import Student, User
-from .utils import calculate_percentage
+from .utils import calculate_percentage, check_password_rules
 
 # setting up the main blueprint for the app.
 main = Blueprint("main", __name__)
@@ -97,14 +97,16 @@ def register():
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "").strip()
         confirm_password = request.form.get("confirm_password", "").strip()
-        role_input = request.form.get("role", "user").strip().lower()
         if not username or not email or not password or not confirm_password:
             flash("All fields are required.", "danger")
             return redirect(url_for("main.register"))
-        if role_input == "admin":
-            role = ROLE_ADMIN
-        elif role_input == "teacher":
-            role = ROLE_TEACHER
+        # Admin accounts are created by the seed script instead.
+        role = ROLE_TEACHER
+        # Check the password rules (the function lives in utils.py).
+        password_problem = check_password_rules(password)
+        if password_problem:
+            flash(password_problem, "danger")
+            return redirect(url_for("main.register"))
         else:
             flash("Invalid role selected.", "danger")
             return redirect(url_for("main.register"))

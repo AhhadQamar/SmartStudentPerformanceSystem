@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from werkzeug.security import generate_password_hash
 
@@ -11,7 +13,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///students.db"
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = "bc230216165"
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
 
     db.init_app(app)
     app.register_blueprint(main)
