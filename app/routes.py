@@ -187,9 +187,21 @@ def admin_students():
         flash("Student added successfully.", "success")
         return redirect(url_for("main.admin_students"))
 
-    # GET = just show the page with the list of students.
-    students = Student.query.order_by(Student.id.desc()).all()
-    return render_template("admin_students.html", students=students)
+    # GET = show the list. If the URL has ?q=something, only show matches.
+    # request.args holds whatever comes after the "?" in the URL.
+    search_text = request.args.get("q", "").strip()
+
+    query = Student.query
+    if search_text:
+        # % means "anything". ilike is a case-insensitive "contains" match.
+        pattern = f"%{search_text}%"
+        query = query.filter(
+            db.or_(Student.name.ilike(pattern), Student.roll_number.ilike(pattern))
+        )
+    students = query.order_by(Student.id.desc()).all()
+    return render_template(
+        "admin_students.html", students=students, search_text=search_text
+    )
 
 
 @main.route("/admin/students/<int:student_id>/edit", methods=["GET", "POST"])
@@ -228,6 +240,21 @@ def admin_edit_student(student_id):
         flash("Student updated successfully.", "success")
         return redirect(url_for("main.admin_students"))
     return render_template("admin_edit_student.html", student=student)
+
+
+@main.route("/admin/students/<int:student_id>/delete", methods=["POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_delete_student(student_id):
+    student = Student.query.get(student_id)
+    if student is None:
+        flash("Student not found.", "danger")
+        return redirect(url_for("main.admin_students"))
+    name = student.name
+    db.session.delete(student)
+    db.session.commit()
+    flash(f"Student '{name}' deleted successfully.", "success")
+    return redirect(url_for("main.admin_students"))
 
 
 @main.route("/teacher/predict", methods=["POST"])

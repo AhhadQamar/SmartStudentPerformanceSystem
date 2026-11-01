@@ -20,6 +20,7 @@
 
   /* accents */
   --accent-teal: #7dcfff;
+  --accent-danger: #f7768e;
   --accent-teal-dark: #2ac3de;
 
   /* misc */
@@ -50,6 +51,7 @@
 
   /* accents */
   --accent-teal: #2ac3de;
+  --accent-danger: #c53b53;
   --accent-teal-dark: #0f7590;
 
   /* misc — unchanged */
@@ -219,15 +221,17 @@ body {
 .btn-primary {
   background: var(--accent-teal-dark);
   border: 1px solid var(--accent-teal-dark);
+  color: var(--bg-base);
   box-shadow: none;
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background: var(--accent-teal);
-  border-color: var(--accent-teal);
+  background: var(--accent-teal-dark);
+  border-color: var(--accent-teal-dark);
+  color: var(--bg-base);
+  filter: brightness(1.15);
 }
-
 .btn-outline-secondary {
   border-color: var(--border-muted);
   color: var(--text-primary);
@@ -238,6 +242,17 @@ body {
   background: var(--border-subtle);
   border-color: var(--border-hover);
   color: var(--text-bright);
+}
+.btn-outline-danger {
+  border-color: var(--accent-danger);
+  color: var(--accent-danger);
+}
+
+.btn-outline-danger:hover,
+.btn-outline-danger:focus {
+  background: var(--accent-danger);
+  border-color: var(--accent-danger);
+  color: var(--bg-base);
 }
 
 /* Tables */

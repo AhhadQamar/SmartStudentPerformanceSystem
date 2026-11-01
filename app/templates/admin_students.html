@@ -60,6 +60,19 @@
           <a class='btn btn-outline-secondary btn-sm'
              href="{{ url_for('main.dashboard') }}">Back</a>
         </div>
+        {# method="GET" puts the search text in the URL as ?q=..., so the page can be bookmarked #}
+        <form method="GET" class="d-flex gap-2 mb-3">
+          <input class="form-control form-control-soft"
+                 type="text"
+                 name="q"
+                 value="{{ search_text }}"
+                 placeholder="Search by name or roll number" />
+          <button class="btn btn-primary" type="submit">Search</button>
+          {% if search_text %}
+            <a class="btn btn-outline-secondary"
+               href="{{ url_for('main.admin_students') }}">Clear</a>
+          {% endif %}
+        </form>
         {% if students %}
           <div class="table-responsive">
             <table class='table align-middle mb-0 '>
@@ -76,14 +89,20 @@
                 {% for student in students %}
                   <tr>
                     {# In dark mode we add the class "text-white" so the text is visible #}
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.roll_number }}</td>
+                    <td class="text-noowrap {% if theme == 'dark' %}text-white{% endif %}">{{ student.roll_number }}</td>
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.name }}</td>
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.email }}</td>
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.contact }}</td>
-                    <td>
+                    <td class="text-nowrap">
                       {# url_for fills the <int:student_id> part of the URL with this student's id #}
-                      <a class="btn btn-outline-secondary btn-sm"
+                      <a class="btn btn-outline-secondary btn-sm me-1"
                          href="{{ url_for('main.admin_edit_student', student_id=student.id) }}">Edit</a>
+                      <form method="POST"
+                            action="{{ url_for('main.admin_delete_student', student_id=student.id) }}"
+                            class="d-inline"
+                            onsubmit="return confirm('Delete this student? Their marks, attendance and predictions will be deleted too.');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                      </form>
                     </td>
                   </tr>
                 {% endfor %}
