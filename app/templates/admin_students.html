@@ -88,11 +88,10 @@
               <tbody>
                 {% for student in students %}
                   <tr>
-                    {# In dark mode we add the class "text-white" so the text is visible #}
-                    <td class="text-noowrap {% if theme == 'dark' %}text-white{% endif %}">{{ student.roll_number }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.name }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.email }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.contact }}</td>
+                    <td class="text-nowrap">{{ student.roll_number }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.contact }}</td>
                     <td class="text-nowrap">
                       {# url_for fills the <int:student_id> part of the URL with this student's id #}
                       <a class="btn btn-outline-secondary btn-sm me-1"

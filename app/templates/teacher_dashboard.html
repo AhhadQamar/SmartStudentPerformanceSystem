@@ -20,9 +20,9 @@
               <tbody>
                 {% for course in my_courses %}
                   <tr>
-                    <td class="text-nowrap {% if theme == 'dark' %}text-white{% endif %}">{{ course.course_code }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.course_name }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.enrollments|length }}</td>
+                    <td class="text-nowrap">{{ course.course_code }}</td>
+                    <td>{{ course.course_name }}</td>
+                    <td>{{ course.enrollments|length }}</td>
                     <td class="text-nowrap">
                       <a class="btn btn-outline-secondary btn-sm"
                          href="{{ url_for('main.teacher_course', course_id=course.id) }}">Open</a>

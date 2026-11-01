@@ -54,8 +54,8 @@
                 {% for enrollment in course.enrollments %}
                   <tr>
                     {# enrollment.student follows the foreign key to the Student row #}
-                    <td class="text-nowrap {% if theme == 'dark' %}text-white{% endif %}">{{ enrollment.student.roll_number }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ enrollment.student.name }}</td>
+                    <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
+                    <td>{{ enrollment.student.name }}</td>
                     <td class="text-nowrap">
                       <form method="POST"
                             class="d-inline"

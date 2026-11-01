@@ -16,21 +16,6 @@ main = Blueprint("main", __name__)
 MODEL_PATH = Path(__file__).resolve().parent / "static" / "model" / "model.pkl"
 
 
-# theme switching route. This will set the theme in the session and redirect to the previous page. If the theme is not valid, it will default to dark theme.
-@main.route("/set-theme/<theme>")
-def set_theme(theme):
-    if theme not in ("dark", "light"):
-        theme = "dark"
-    session["theme"] = theme
-    return redirect(request.referrer or url_for("main.index"))
-
-
-# makeing theme available in all templates. This will get the theme from the session and pass it to the template. If the theme is not set, it will default to dark theme.
-@main.context_processor
-def inject_theme():
-    return {"theme": session.get("theme", "dark")}
-
-
 # function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
 def login_required(view):
     @wraps(view)

@@ -1,78 +1,47 @@
-:root,
-[data-theme="dark"] {
+:root {
   /* backgrounds */
-  --bg-base: #1a1b26;
-  --bg-surface: #24283b;
-  --bg-navbar: #16161e;
-  --bg-input: #1a1b26;
-  --bg-result: #1f2335;
+  --bg-base: #1f1f28;
+  --bg-navbar: #16161d;
+  --bg-surface: #2a2a37;
+  --bg-input: #181820;
+  --bg-hover: #363646;
 
   /* borders */
-  --border-subtle: #292e42;
-  --border-input: #3b4261;
-  --border-muted: #565f89;
-  --border-hover: #737aa2;
-
+  --border-subtle: #363646;
+  --border-input: #54546d;
+  --border-hover: #938aa9;
   /* text */
-  --text-primary: #c0caf5;
-  --text-bright: #f4f4f9;
-  --text-muted: #565f89;
+  --text-primary: #dcd7ba;
+  --text-bright: #eae5c8;
+  --text-muted: #9a9888;
 
-  /* accents */
-  --accent-teal: #7dcfff;
-  --accent-danger: #f7768e;
-  --accent-teal-dark: #2ac3de;
+  /* one accent color: Kanagawa's crystal blue */
+  --accent: #7e9cd8;
+  --accent-hover: #6c8bc9;
 
-  /* misc */
-  --radius-sm: 0.65rem;
-  --radius-md: 0.8rem;
-  --radius-lg: 0.9rem;
-  --radius-xl: 1rem;
+  /* status colors */
+  --accent-danger: #e46876;
+  --accent-success: #98bb6c;
+  --accent-warning: #e6c384;
+
+  /* corners */
+  --radius-sm: 0.3rem;
+  --radius-md: 0.4rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.65rem;
 }
 
-[data-theme="light"] {
-  /* backgrounds */
-  --bg-base: #e1e2e7;
-  --bg-surface: #ffffff;
-  --bg-navbar: #d5d6db;
-  --bg-input: #ffffff;
-  --bg-result: #f4f4f8;
-
-  /* borders */
-  --border-subtle: #c4c8da;
-  --border-input: #a8b0c6;
-  --border-muted: #8993b8;
-  --border-hover: #6b7394;
-
-  /* text */
-  --text-primary: #343b58;
-  --text-bright: #14161e;
-  --text-muted: #6b7394;
-
-  /* accents */
-  --accent-teal: #2ac3de;
-  --accent-danger: #c53b53;
-  --accent-teal-dark: #0f7590;
-
-  /* misc — unchanged */
-  --radius-sm: 0.65rem;
-  --radius-md: 0.8rem;
-  --radius-lg: 0.9rem;
-  --radius-xl: 1rem;
-}
-
-/* smooth switch */
-body {
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-/* main styles */
+/* ---------- Page ---------- */
 body {
   min-height: 100vh;
-  background: var(--bg-base);
+  font-family:
+    "Karla",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   color: var(--text-primary);
+  background: var(--bg-base);
 }
 
 .app-shell {
@@ -80,42 +49,71 @@ body {
   flex-direction: column;
 }
 
-/* Navbar */
+/* same width for the navbar and the page, at every screen size */
+.container {
+  max-width: 1140px;
+}
+
+::selection {
+  background: rgba(126, 156, 216, 0.3);
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* ---------- Navbar ---------- */
 .app-navbar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 10;
+  width: calc(100% - 1.5rem);
+  max-width: 1140px;
+  margin: 0.75rem auto 0;
   background: var(--bg-navbar);
-  border-bottom: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+}
+
+.app-navbar .container {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
 .app-navbar .navbar-brand {
-  color: var(--text-primary) !important;
-  letter-spacing: -0.02em;
-}
-
-.app-navbar .navbar-brand:hover {
   color: var(--text-bright) !important;
+  font-weight: 600;
 }
 
 .app-navbar .btn {
-  border-radius: var(--radius-md);
   color: var(--text-primary);
-  border-color: var(--border-muted);
+  border-color: var(--border-input);
 }
 
 .app-navbar .btn:hover,
 .app-navbar .btn:focus {
   color: var(--text-bright);
   border-color: var(--border-hover);
-  background: var(--border-subtle);
+  background: var(--bg-hover);
 }
 
+/* the role tag (Admin / Teacher) */
 .app-navbar .badge {
-  padding: 0.45rem 0.75rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  background: var(--accent-teal) !important;
-  color: var(--bg-base) !important;
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-sm) !important;
 }
 
-/* Logo */
+/* The S2P logo */
 .brand-mark {
   display: inline-flex;
   align-items: center;
@@ -123,126 +121,153 @@ body {
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius-sm);
-  background: var(--accent-teal-dark);
-  color: var(--bg-base);
+  background: var(--accent);
+  color: var(--bg-navbar);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-/* Alerts & cards */
-.alert-soft {
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  box-shadow: none;
-}
-
+/* ---------- Cards ---------- */
 .surface-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   color: var(--text-primary);
-  box-shadow: none;
-}
-
-.surface-card .form-label {
-  font-weight: 500;
-}
-
-.surface-card .text-muted {
-  color: var(--text-muted) !important;
-}
-
-.surface-card .btn,
-.surface-card .form-control-soft,
-.surface-card .form-select.form-control-soft {
-  border-radius: var(--radius-md);
+  box-shadow: none !important;
 }
 
 .surface-card p:last-child {
   margin-bottom: 0;
 }
 
-/* Typography */
-.section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+.surface-card > .d-flex:first-child {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
-.display-6,
-.h1,
-.h2,
-.h3,
-.h4,
-.h5 {
-  letter-spacing: -0.03em;
+/* ---------- Alerts ---------- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.alert-soft {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
+  border-radius: var(--radius-lg);
+  font-size: 0.92rem;
+  animation: fade-in 0.25s ease;
+}
+
+.alert-soft.alert-success {
+  border-left-color: var(--accent-success);
+}
+.alert-soft.alert-danger {
+  border-left-color: var(--accent-danger);
+}
+.alert-soft.alert-warning {
+  border-left-color: var(--accent-warning);
+}
+
+/* ---------- Typography ---------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Lora", Georgia, serif;
+  color: var(--text-bright);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.section-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .text-muted {
   color: var(--text-muted) !important;
 }
 
-.navbar-brand,
-.nav-link,
+/* ---------- Forms ---------- */
 .form-label {
   color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 500;
 }
 
-.navbar-brand:hover {
-  color: var(--text-bright);
-}
-
-/* Form controls */
 .form-control-soft {
-  border-radius: var(--radius-md);
+  background-color: var(--bg-input);
+  color: var(--text-bright);
   border: 1px solid var(--border-input);
-  background: var(--bg-input);
-  color: var(--text-primary);
-  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  transition: border-color 0.12s ease;
 }
 
 .form-control-soft:focus {
-  box-shadow: none;
-  border-color: var(--accent-teal);
-  background: var(--bg-input);
+  background-color: var(--bg-input);
   color: var(--text-bright);
+  border-color: var(--accent);
+  box-shadow: none;
 }
 
 .form-control-soft::placeholder {
-  color: #adb5bd;
+  color: var(--text-muted);
   opacity: 1;
 }
 
-/* Buttons */
-.btn-primary {
-  background: var(--accent-teal-dark);
-  border: 1px solid var(--accent-teal-dark);
-  color: var(--bg-base);
+/* ---------- Buttons ---------- */
+.btn {
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   box-shadow: none;
 }
 
-.btn-primary:hover,
-.btn-primary:focus {
-  background: var(--accent-teal-dark);
-  border-color: var(--accent-teal-dark);
-  color: var(--bg-base);
-  filter: brightness(1.15);
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-navbar);
 }
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--bg-navbar);
+}
+
 .btn-outline-secondary {
-  border-color: var(--border-muted);
+  border-color: var(--border-input);
   color: var(--text-primary);
 }
 
 .btn-outline-secondary:hover,
 .btn-outline-secondary:focus {
-  background: var(--border-subtle);
+  background: var(--bg-hover);
   border-color: var(--border-hover);
   color: var(--text-bright);
 }
+
 .btn-outline-danger {
   border-color: var(--accent-danger);
   color: var(--accent-danger);
@@ -252,47 +277,65 @@ body {
 .btn-outline-danger:focus {
   background: var(--accent-danger);
   border-color: var(--accent-danger);
-  color: var(--bg-base);
+  color: var(--bg-navbar);
 }
 
-/* Tables */
+/* ---------- Tables ---------- */
 .table {
-  color: var(--text-primary);
+  --bs-table-color: var(--text-primary);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--border-subtle);
   margin-bottom: 0;
 }
 
+.table > :not(:first-child) {
+  border-top: 0;
+}
+
 .table thead th {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 500;
   color: var(--text-muted);
-  border-bottom-width: 1px;
-  border-color: var(--border-subtle);
 }
 
 .table tbody td {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-color: var(--border-subtle);
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
-.table,
-.table td,
-.table th {
-  background: transparent;
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table > tbody > tr:hover > td {
+  background-color: var(--bg-hover);
 }
 
 .table-responsive {
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
 }
 
-/* Utilities & overrides */
-.bg-white,
-.bg-light {
-  background: transparent !important;
+/* ---------- Prediction result ---------- */
+.result-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
 }
 
+.result-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.result-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ---------- Layout ---------- */
 .row.justify-content-center > [class*="col-"] {
   max-width: 760px;
 }

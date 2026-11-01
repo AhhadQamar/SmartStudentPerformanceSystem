@@ -29,9 +29,9 @@
               <tbody>
                 {% for enrollment in course.enrollments %}
                   <tr>
-                    <td class="text-nowrap {% if theme == 'dark' %}text-white{% endif %}">{{ enrollment.student.roll_number }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ enrollment.student.name }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ enrollment.student.email }}</td>
+                    <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
+                    <td>{{ enrollment.student.name }}</td>
+                    <td>{{ enrollment.student.email }}</td>
                   </tr>
                 {% endfor %}
               </tbody>

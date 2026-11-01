@@ -67,12 +67,12 @@
               <tbody>
                 {% for course in courses %}
                   <tr>
-                    <td class="text-nowrap {% if theme == 'dark' %}text-white{% endif %}">{{ course.course_code }}</td>
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.course_name }}</td>
+                    <td class="text-nowrap">{{ course.course_code }}</td>
+                    <td>{{ course.course_name }}</td>
                     {# course.teacher follows the foreign key to the User row #}
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.teacher.username }}</td>
+                    <td>{{ course.teacher.username }}</td>
                     {# |length counts the items in the enrollments list #}
-                    <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.enrollments|length }}</td>
+                    <td>{{ course.enrollments|length }}</td>
                     <td class="text-nowrap">
                       <a class="btn btn-outline-secondary btn-sm"
                          href="{{ url_for('main.admin_enroll', course_id=course.id) }}">Enrollment</a>
