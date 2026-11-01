@@ -192,6 +192,44 @@ def admin_students():
     return render_template("admin_students.html", students=students)
 
 
+@main.route("/admin/students/<int:student_id>/edit", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_edit_student(student_id):
+    student = Student.query.get(student_id)
+    # Look the student up in the database. If they don't exist, show an error and redirect to the student list.
+    if student is None:
+        flash("Student not found.", "danger")
+        return redirect(url_for("main.admin_students"))
+    # POST = the admin submitted the "Edit Student" form.
+    if request.method == "POST":
+        roll_number = request.form.get("roll_number", "").strip()
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        contact = request.form.get("contact", "").strip()
+        # Reject the form if any field is empty.
+        if not roll_number or not name or not email or not contact:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("main.admin_edit_student", student_id=student_id))
+
+        same_roll = Student.query.filter_by(roll_number=roll_number).first()
+        if same_roll and same_roll.id != student.id:
+            flash("Student with this roll number already exists.", "danger")
+            return redirect(url_for("main.admin_edit_student", student_id=student_id))
+        same_email = Student.query.filter_by(email=email).first()
+        if same_email and same_email.id != student.id:
+            flash("Student with this email already exists.", "danger")
+            return redirect(url_for("main.admin_edit_student", student_id=student_id))
+        student.roll_number = roll_number
+        student.name = name
+        student.email = email
+        student.contact = contact
+        db.session.commit()  # save the changes to the database
+        flash("Student updated successfully.", "success")
+        return redirect(url_for("main.admin_students"))
+    return render_template("admin_edit_student.html", student=student)
+
+
 @main.route("/teacher/predict", methods=["POST"])
 @login_required
 @role_required(ROLE_TEACHER)

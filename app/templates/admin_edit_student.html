@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Edit Student | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-lg-5">
+      <div class="surface-card p-4 shadow-md">
+        <p class="section-label mb-2">Administrator</p>
+        <h1 class="h4 fw-semibold">Edit Student</h1>
+        <form method="POST">
+          {# value="..." puts the current data inside the box when the page opens #}
+          <div class="mb-3">
+            <label class="form-label" for="roll_number">Roll Number</label>
+            <input class="form-control form-control-soft"
+                   type="text"
+                   name="roll_number"
+                   id="roll_number"
+                   value="{{ student.roll_number }}"
+                   required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="name">Name</label>
+            <input class="form-control form-control-soft"
+                   type="text"
+                   name="name"
+                   id="name"
+                   value="{{ student.name }}"
+                   required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="email">Email</label>
+            <input class="form-control form-control-soft"
+                   type="email"
+                   name="email"
+                   id="email"
+                   value="{{ student.email }}"
+                   required />
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="contact">Contact</label>
+            <input class="form-control form-control-soft"
+                   type="text"
+                   name="contact"
+                   id="contact"
+                   value="{{ student.contact }}"
+                   required />
+          </div>
+          <button class="btn btn-primary w-100 mb-2" type="submit">Save Changes</button>
+          <a class="btn btn-outline-secondary w-100"
+             href="{{ url_for('main.admin_students') }}">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

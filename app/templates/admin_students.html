@@ -69,6 +69,7 @@
                   <th>Name</th>
                   <th>Email</th>
                   <th>Contact</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -79,6 +80,11 @@
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.name }}</td>
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.email }}</td>
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ student.contact }}</td>
+                    <td>
+                      {# url_for fills the <int:student_id> part of the URL with this student's id #}
+                      <a class="btn btn-outline-secondary btn-sm"
+                         href="{{ url_for('main.admin_edit_student', student_id=student.id) }}">Edit</a>
+                    </td>
                   </tr>
                 {% endfor %}
               </tbody>
