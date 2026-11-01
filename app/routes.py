@@ -145,10 +145,28 @@ def dashboard():
     if role == ROLE_ADMIN:
         return render_template("admin_dashboard.html")
     if role == ROLE_TEACHER:
-        students = Student.query.order_by(Student.id.desc()).all()
-        return render_template("teacher_dashboard.html", students=students)
+        my_courses = (
+            Course.query.filter_by(teacher_id=session["user_id"])
+            .order_by(Course.course_code)
+            .all()
+        )
+        students = Student.query.order_by(Student.name).all()
+        return render_template(
+            "teacher_dashboard.html", my_courses=my_courses, students=students
+        )
     flash("You do not have permission to access this page.", "danger")
     return redirect(url_for("main.index"))
+
+
+@main.route("/teacher/courses/<int:course_id>")
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_course(course_id):
+    course = Course.query.get(course_id)
+    if course is None or course.teacher_id != session["user_id"]:
+        flash("Course not found.", "danger")
+        return redirect(url_for("main.dashboard"))
+    return render_template("teacher_course.html", course=course)
 
 
 # route for the admin to manage students. This will allow the admin to add new students and view the list of existing students. If the user does not have permission, they will be redirected to the index page with a flash message.
