@@ -61,6 +61,7 @@
                   <th>Name</th>
                   <th>Teacher</th>
                   <th>Students</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,6 +73,10 @@
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.teacher.username }}</td>
                     {# |length counts the items in the enrollments list #}
                     <td class="{% if theme == 'dark' %}text-white{% endif %}">{{ course.enrollments|length }}</td>
+                    <td class="text-nowrap">
+                      <a class="btn btn-outline-secondary btn-sm"
+                         href="{{ url_for('main.admin_enroll', course_id=course.id) }}">Enrollment</a>
+                    </td>
                   </tr>
                 {% endfor %}
               </tbody>

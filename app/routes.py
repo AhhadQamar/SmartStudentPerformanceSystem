@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
-from .models import Course, Student, User
+from .models import Course, Enrollment, Student, User
 from .utils import calculate_percentage, check_password_rules
 
 # setting up the main blueprint for the app.
@@ -291,6 +291,75 @@ def admin_courses():
     courses = Course.query.order_by(Course.course_code).all()
     teachers = User.query.filter_by(role=ROLE_TEACHER).order_by(User.username).all()
     return render_template("admin_courses.html", courses=courses, teachers=teachers)
+
+
+# Route for the admin to mangane who is enrolled in which courses. GET shows the page. POST adds the chosen student to the course.
+@main.route("/admin/courses/<int:course_id>/enroll", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_enroll(course_id):
+    course = Course.query.get(course_id)
+    if course is None:
+        flash("Course not found.", "danger")
+        return redirect(url_for("main.admin_courses"))
+
+    # post = the admin submitted the "Enroll Student" form.
+    if request.method == "POST":
+        student_id = request.form.get("student_id", "")
+
+        student = None
+        if student_id.isdigit():
+            student = Student.query.get(int(student_id))
+        if student is None:
+            flash("Invalid student ID.", "danger")
+            return redirect(url_for("main.admin_enroll", course_id=course_id))
+        # Check if the student is already enrolled in the course.
+
+        already_enrolled = Enrollment.query.filter_by(
+            student_id=student_id, course_id=course_id
+        ).first()
+        if already_enrolled:
+            flash("Student is already enrolled in this course.", "danger")
+            return redirect(url_for("main.admin_enroll", course_id=course_id))
+
+        enrollment = Enrollment(student_id=student.id, course_id=course.id)
+        db.session.add(enrollment)
+        db.session.commit()
+        flash(
+            f"Student '{student.name}' enrolled in course '{course.course_name}'.",
+            "success",
+        )
+        return redirect(url_for("main.admin_enroll", course_id=course_id))
+        # Get work out which students are not enrolled yet for the dropdown list.
+    enrolled_ids = [enrollment.student_id for enrollment in course.enrollments]
+    available_students = (
+        Student.query.filter(Student.id.notin_(enrolled_ids))
+        .order_by(Student.name)
+        .all()
+    )
+
+    return render_template(
+        "admin_enroll.html", course=course, available_students=available_students
+    )
+
+
+# route to remove one student form a course post request only.
+@main.route(
+    "/admin/courses/<int:course_id>/unenroll/<int:student_id>", methods=["POST"]
+)
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_unenroll(course_id, student_id):
+    enrollment = Enrollment.query.filter_by(
+        student_id=student_id, course_id=course_id
+    ).first()
+    if enrollment is None:
+        flash("Enrollment not found.", "danger")
+    else:
+        db.session.delete(enrollment)
+        db.session.commit()
+        flash("Student removed from the course.", "success")
+    return redirect(url_for("main.admin_enroll", course_id=course_id))
 
 
 @main.route("/teacher/predict", methods=["POST"])
