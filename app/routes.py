@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
-from .models import Student, User
+from .models import Course, Student, User
 from .utils import calculate_percentage, check_password_rules
 
 # setting up the main blueprint for the app.
@@ -107,9 +107,6 @@ def register():
         if password_problem:
             flash(password_problem, "danger")
             return redirect(url_for("main.register"))
-        else:
-            flash("Invalid role selected.", "danger")
-            return redirect(url_for("main.register"))
         if password != confirm_password:
             flash("Passwords do not match.", "danger")
             return redirect(url_for("main.register"))
@@ -204,6 +201,7 @@ def admin_students():
     )
 
 
+# route for the admin to edit a student. This will allow the admin to edit the student's details. If the user does not have permission, they will be redirected to the index page with a flash message.
 @main.route("/admin/students/<int:student_id>/edit", methods=["GET", "POST"])
 @login_required
 @role_required(ROLE_ADMIN)
@@ -242,6 +240,7 @@ def admin_edit_student(student_id):
     return render_template("admin_edit_student.html", student=student)
 
 
+# route for the admin to delete a student. This will delete the student and all their marks, attendance and predictions. If the user does not have permission, they will be redirected to the index page with a flash message.
 @main.route("/admin/students/<int:student_id>/delete", methods=["POST"])
 @login_required
 @role_required(ROLE_ADMIN)
@@ -255,6 +254,43 @@ def admin_delete_student(student_id):
     db.session.commit()
     flash(f"Student '{name}' deleted successfully.", "success")
     return redirect(url_for("main.admin_students"))
+
+
+# route for the admin to manage courses. This will allow the admin to add new courses and view the list of existing courses. If the user does not have permission, they will be redirected to the index page with a flash message.
+@main.route("/admin/courses", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_courses():
+    if request.method == "POST":
+        course_name = request.form.get("course_name", "").strip()
+        course_code = request.form.get("course_code", "").strip().upper()
+        teacher_id = request.form.get("teacher_id", "").strip()
+
+        if not course_name or not course_code or not teacher_id:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("main.admin_courses"))
+
+        teacher = None
+        if teacher_id.isdigit():
+            teacher = User.query.get(int(teacher_id))
+
+        if teacher is None or teacher.role != ROLE_TEACHER:
+            flash("Invalid teacher ID.", "danger")
+            return redirect(url_for("main.admin_courses"))
+        if Course.query.filter_by(course_code=course_code).first():
+            flash("Course with this code already exists.", "danger")
+            return redirect(url_for("main.admin_courses"))
+        course = Course(
+            course_name=course_name, course_code=course_code, teacher_id=teacher.id
+        )
+        db.session.add(course)
+        db.session.commit()
+        flash("Course added successfully.", "success")
+        return redirect(url_for("main.admin_courses"))
+
+    courses = Course.query.order_by(Course.course_code).all()
+    teachers = User.query.filter_by(role=ROLE_TEACHER).order_by(User.username).all()
+    return render_template("admin_courses.html", courses=courses, teachers=teachers)
 
 
 @main.route("/teacher/predict", methods=["POST"])
