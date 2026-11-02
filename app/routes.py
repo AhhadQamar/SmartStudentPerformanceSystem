@@ -3,12 +3,14 @@ from functools import wraps
 from pathlib import Path
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from sqlalchemy.orm import query
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from .config_grading import MAX_MARKS
 from .constants import ROLE_ADMIN, ROLE_TEACHER
 from .extensions import db
-from .models import Course, Enrollment, Student, User
-from .utils import calculate_percentage, check_password_rules
+from .models import Course, Enrollment, Marks, Student, User
+from .utils import calculate_percentage, check_password_rules, recalculate_marks
 
 # setting up the main blueprint for the app.
 main = Blueprint("main", __name__)
@@ -161,6 +163,122 @@ def teacher_course(course_id):
         flash("Course not found.", "danger")
         return redirect(url_for("main.dashboard"))
     return render_template("teacher_course.html", course=course)
+
+
+# route for the page where a teacher can type in the marks for one assesment of one course. This will allow the teacher to enter the marks for each student in the course
+@main.route("/teacher/marks", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_marks():
+    # The courses for the dropdown: only this teacher's own.
+    my_courses = (
+        Course.query.filter_by(teacher_id=session["user_id"])
+        .order_by(Course.course_code)
+        .all()
+    )
+
+    course_id = request.args.get("course", "")
+    assessment = request.args.get("assessment", "")
+
+    # Find the chosen course and check it belongs to this teacher.
+    course = None
+    if course_id.isdigit():
+        course = Course.query.get(int(course_id))
+        if course is None or course.teacher_id != session["user_id"]:
+            flash("Course not found.", "danger")
+            return redirect(url_for("main.teacher_marks"))
+
+    # The assessment must be one of the names in config_grading.py.
+    if assessment and assessment not in MAX_MARKS:
+        flash("Unknown assessment.", "danger")
+        return redirect(url_for("main.teacher_marks"))
+
+    # Only when BOTH are chosen do we show the list of students.
+    show_students = course is not None and assessment != ""
+    max_mark = MAX_MARKS.get(assessment)
+    typed = {}  # what the teacher typed, so we can put it back if there is an error
+
+    if request.method == "POST":
+        if not show_students:
+            flash("Choose a course and an assessment first.", "danger")
+            return redirect(url_for("main.teacher_marks"))
+
+        typed = request.form
+        new_marks = {}
+        problems = []  # error messages
+
+        for enrollment in course.enrollments:
+            student = enrollment.student
+            text = request.form.get(f"mark_{student.id}", "").strip()
+
+            if text == "":
+                continue  # nothing typed, so leave this student as they are
+
+            try:
+                value = float(text)
+            except ValueError:
+                problems.append(f"{student.name}: '{text}' is not a number.")
+                continue
+
+            if value < 0 or value > max_mark:
+                problems.append(
+                    f"{student.name}: the mark must be between 0 and {max_mark}."
+                )
+                continue
+
+            new_marks[student.id] = value
+
+        if problems:
+            for problem in problems:
+                flash(problem, "danger")
+        elif not new_marks:
+            flash("No marks were entered.", "warning")
+        else:
+            try:
+                for student_id, value in new_marks.items():
+                    marks = Marks.query.filter_by(
+                        student_id=student_id, course_id=course.id
+                    ).first()
+                    if marks is None:
+                        marks = Marks(student_id=student_id, course_id=course.id)
+                        db.session.add(marks)
+
+                    setattr(marks, assessment, value)
+                    recalculate_marks(marks)
+
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                flash(
+                    "The marks could not be saved. Nothing was changed, please try again.",
+                    "danger",
+                )
+            else:
+                flash(f"Saved {len(new_marks)} mark(s).", "success")
+                return redirect(
+                    url_for(
+                        "main.teacher_marks", course=course.id, assessment=assessment
+                    )
+                )
+
+    existing = {}
+    if show_students:
+        for marks in Marks.query.filter_by(course_id=course.id).all():
+            value = getattr(marks, assessment)
+            if value is not None:
+                existing[marks.student_id] = f"{value:g}"
+
+    return render_template(
+        "teacher_marks.html",
+        my_courses=my_courses,
+        course=course,
+        assessment=assessment,
+        assessments=MAX_MARKS,
+        max_mark=max_mark,
+        show_students=show_students,
+        existing=existing,
+        typed=typed,
+    )
 
 
 # route for the admin to manage students. This will allow the admin to add new students and view the list of existing students. If the user does not have permission, they will be redirected to the index page with a flash message.

@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Enter Marks | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Enter Marks</h1>
+    <p class="text-muted mb-0">Choose a course and an assessment, then type in the marks.</p>
+  </div>
+  {# Step 1: choose a course and an assessment. A GET form puts the choice in the URL. #}
+  <div class="surface-card p-4 mb-4">
+    <form method="GET">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label" for="course">Course</label>
+          <select class="form-select form-control-soft"
+                  name="course"
+                  id="course"
+                  required>
+            <option value="">Choose a course</option>
+            {% for my_course in my_courses %}
+              <option value="{{ my_course.id }}"
+                      {% if course and course.id == my_course.id %}selected{% endif %}>
+                {{ my_course.course_code }} &middot; {{ my_course.course_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="assessment">Assessment</label>
+          <select class="form-select form-control-soft"
+                  name="assessment"
+                  id="assessment"
+                  required>
+            <option value="">Choose an assessment</option>
+            {% for name, maximum in assessments.items() %}
+              <option value="{{ name }}" {% if assessment == name %}selected{% endif %}>
+                {{ name|capitalize }} (out of {{ maximum }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary w-100" type="submit">Load students</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {# Step 2: one input box per enrolled student. #}
+  {% if show_students %}
+    <div class="surface-card p-4">
+      <h2 class="h5 mb-3">
+        {{ course.course_code }} &middot; {{ assessment|capitalize }}
+        <span class="text-muted">(out of {{ max_mark }})</span>
+      </h2>
+      {% if course.enrollments %}
+        {# No action="..." so the form posts to the page's own URL, query string included. #}
+        <form method="POST">
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Roll</th>
+                  <th>Name</th>
+                  <th>Mark</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for enrollment in course.enrollments %}
+                  <tr>
+                    <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
+                    <td>{{ enrollment.student.name }}</td>
+                    <td>
+                      {# The name "mark_5" tells Python which student the box belongs to.
+                         The value is what was just typed (after an error), or the saved mark. #}
+                      <input class="form-control form-control-soft mark-input"
+                             type="number"
+                             step="any"
+                             name="mark_{{ enrollment.student.id }}"
+                             value="{{ typed.get('mark_' ~ enrollment.student.id, existing.get(enrollment.student.id, '') ) }}">
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button class="btn btn-primary mt-3 px-4" type="submit">Save marks</button>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0">No students are enrolled in this course yet.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}

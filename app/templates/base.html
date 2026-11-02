@@ -38,6 +38,8 @@
             {% else %}
               <a class="app-nav-link {% if request.endpoint in ['main.dashboard', 'main.teacher_course'] %}active{% endif %}"
                  href="{{ url_for('main.dashboard') }}">My Courses</a>
+              <a class="app-nav-link {% if request.endpoint == 'main.teacher_marks' %}active{% endif %}"
+                 href="{{ url_for('main.teacher_marks') }}">Marks</a>
             {% endif %}
           </div>
         {% endif %}

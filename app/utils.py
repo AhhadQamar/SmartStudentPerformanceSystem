@@ -81,6 +81,18 @@ def check_password_rules(password):
     return None  # password is fine
 
 
+def recalculate_marks(marks):
+    # marks is one row of the marks table, as a dictionary. It has keys: quiz, assignment, midterm, final.
+    # we calculate the percentage and grade, and add them to the dictionary. If any of the marks are missing, we set percentage and grade to None
+    result = calculate_grade(marks.quiz, marks.assignment, marks.midterm, marks.final)
+    if result["status"] == "Complete":
+        marks.percentage = result["percentage"]
+        marks.grade = result["grade"]
+    else:
+        marks.percentage = None
+        marks.grade = None
+
+
 # OLD PROTOTYPE Code
 _MAXIMA = {"attendance": 100, "quiz": 50, "assignment": 25, "midterm": 100}
 

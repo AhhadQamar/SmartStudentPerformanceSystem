@@ -462,3 +462,7 @@ h6 {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+/* ---------- Marks entry ---------- */
+.mark-input {
+  max-width: 8rem;
+}
