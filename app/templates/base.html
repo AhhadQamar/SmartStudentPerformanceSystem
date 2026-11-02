@@ -17,15 +17,30 @@
   </head>
   <body class="app-shell">
     <nav class="navbar navbar-expand-lg navbar-dark app-navbar">
-      <div class="container py-3">
+      <div class="container py-2">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
           <span class="brand-mark d-inline-flex align-items-baseline fw-bold px-4 py-1 me-2">
             <span class="h5 fw-semibold">S</span>
             <span class="h6">2</span>
             <span class="h5 fw-semibold">P</span>
           </span>
-          <span>Smart Student Performance Prediction</span>
+          <span>Smart Student Performance</span>
         </a>
+        {% if session.get('user_id') %}
+          <div class="d-flex gap-1 ms-lg-3">
+            {% if session.get('role') == 'admin' %}
+              <a class="app-nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+                 href="{{ url_for('main.dashboard') }}">Dashboard</a>
+              <a class="app-nav-link {% if request.endpoint in ['main.admin_students', 'main.admin_edit_student'] %}active{% endif %}"
+                 href="{{ url_for('main.admin_students') }}">Students</a>
+              <a class="app-nav-link {% if request.endpoint in ['main.admin_courses', 'main.admin_enroll'] %}active{% endif %}"
+                 href="{{ url_for('main.admin_courses') }}">Courses</a>
+            {% else %}
+              <a class="app-nav-link {% if request.endpoint in ['main.dashboard', 'main.teacher_course'] %}active{% endif %}"
+                 href="{{ url_for('main.dashboard') }}">My Courses</a>
+            {% endif %}
+          </div>
+        {% endif %}
         <div class="ms-auto d-flex gap-2 align-items-center">
           {% if session.get('user_id') %}
             <span class="badge rounded-pill text-bg-light text-dark py-2 px-3 fw-semibold">{{ session.get("role").capitalize() }}</span>
@@ -59,6 +74,12 @@
     <main class="container py-4 py-lg-5 flex-grow-1">
       {% block content %}{% endblock %}
     </main>
+    <footer class="app-footer">
+      <div class="container py-4 d-flex justify-content-between flex-wrap gap-2">
+        <span>Smart Student Performance System</span>
+        <span>CS619 Final Year Project</span>
+      </div>
+    </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

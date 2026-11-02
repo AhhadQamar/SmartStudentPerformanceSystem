@@ -1,14 +1,22 @@
 {% extends 'base.html' %}
 {% block title %}Courses | Smart Student Performance System{% endblock %}
 {% block content %}
-  <div class="row g-5 align-items-start justify-content-center">
-    {# ---- Left: the "Add Course" form ---- #}
-    <div class="col-lg-4">
-      <div class="surface-card p-4 shadow-md">
-        <p class="section-label mb-2">Administrator</p>
-        <h1 class="h4 fw-semibold">Add Course</h1>
-        <form method="POST">
-          <div class="mb-3">
+  <div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <h1 class="h2 mb-1">Courses</h1>
+      <p class="text-muted mb-0">{{ courses|length }} course{{ '' if courses|length == 1 else 's' }}</p>
+    </div>
+    <button class="btn btn-primary px-4"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#add-course">Add course</button>
+  </div>
+  {# The "Add Course" form. Hidden until the button above is clicked. #}
+  <div class="collapse" id="add-course">
+    <div class="surface-card p-4 mb-4">
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-4">
             <label class="form-label" for="course_code">Course Code</label>
             <input class="form-control form-control-soft"
                    type="text"
@@ -17,7 +25,7 @@
                    placeholder="e.g. CS301"
                    required />
           </div>
-          <div class="mb-3">
+          <div class="col-md-4">
             <label class="form-label" for="course_name">Course Name</label>
             <input class="form-control form-control-soft"
                    type="text"
@@ -26,7 +34,7 @@
                    placeholder="e.g. Data Structures"
                    required />
           </div>
-          <div class="mb-4">
+          <div class="col-md-4">
             <label class="form-label" for="teacher_id">Teacher</label>
             {# Each <option> SHOWS the username but SENDS the teacher's id #}
             <select class="form-select form-control-soft"
@@ -37,55 +45,44 @@
               {% for teacher in teachers %}<option value="{{ teacher.id }}">{{ teacher.username }}</option>{% endfor %}
             </select>
           </div>
-          <button class="btn btn-primary w-100" type="submit">Add Course</button>
-        </form>
-      </div>
-    </div>
-    {# ---- Right: the list of courses ---- #}
-    <div class="col-lg-8">
-      <div class="surface-card p-4 shadow-md">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <p class="section-label mb-2">Course List</p>
-            <h2 class="h4 fw-semibold mb-0">Courses</h2>
-          </div>
-          <a class="btn btn-outline-secondary btn-sm"
-             href="{{ url_for('main.dashboard') }}">Back</a>
         </div>
-        {% if courses %}
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Teacher</th>
-                  <th>Students</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for course in courses %}
-                  <tr>
-                    <td class="text-nowrap">{{ course.course_code }}</td>
-                    <td>{{ course.course_name }}</td>
-                    {# course.teacher follows the foreign key to the User row #}
-                    <td>{{ course.teacher.username }}</td>
-                    {# |length counts the items in the enrollments list #}
-                    <td>{{ course.enrollments|length }}</td>
-                    <td class="text-nowrap">
-                      <a class="btn btn-outline-secondary btn-sm"
-                         href="{{ url_for('main.admin_enroll', course_id=course.id) }}">Enrollment</a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-muted mb-0">No courses yet.</p>
-        {% endif %}
-      </div>
+        <button class="btn btn-primary mt-4 px-4" type="submit">Save course</button>
+      </form>
     </div>
+  </div>
+  <div class="surface-card p-4">
+    {% if courses %}
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Teacher</th>
+              <th>Students</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in courses %}
+              <tr>
+                <td class="text-nowrap">{{ course.course_code }}</td>
+                <td>{{ course.course_name }}</td>
+                {# course.teacher follows the foreign key to the User row #}
+                <td>{{ course.teacher.username }}</td>
+                {# |length counts the items in the enrollments list #}
+                <td>{{ course.enrollments|length }}</td>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="{{ url_for('main.admin_enroll', course_id=course.id) }}">Enrollment</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No courses yet.</p>
+    {% endif %}
   </div>
 {% endblock %}

@@ -128,7 +128,16 @@ def logout():
 def dashboard():
     role = session.get("role")
     if role == ROLE_ADMIN:
-        return render_template("admin_dashboard.html")
+        # .count() asks the database for just the number, not all the rows.
+        student_count = Student.query.count()
+        course_count = Course.query.count()
+        teacher_count = User.query.filter_by(role=ROLE_TEACHER).count()
+        return render_template(
+            "admin_dashboard.html",
+            student_count=student_count,
+            course_count=course_count,
+            teacher_count=teacher_count,
+        )
     if role == ROLE_TEACHER:
         my_courses = (
             Course.query.filter_by(teacher_id=session["user_id"])

@@ -1,110 +1,109 @@
 {% extends 'base.html' %}
 {% block title %}Teacher Dashboard | Smart Student Performance System{% endblock %}
 {% block content %}
-  <div class="row justify-content-center">
-    <div class="col-lg-8 col-xl-7">
-      <div class="surface-card p-4 p-lg-5 shadow-sm mb-4">
-        <p class="section-label mb-2">Teacher</p>
-        <h1 class="h3 fw-semibold mb-3">My Courses</h1>
-        {% if my_courses %}
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Students</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for course in my_courses %}
-                  <tr>
-                    <td class="text-nowrap">{{ course.course_code }}</td>
-                    <td>{{ course.course_name }}</td>
-                    <td>{{ course.enrollments|length }}</td>
-                    <td class="text-nowrap">
-                      <a class="btn btn-outline-secondary btn-sm"
-                         href="{{ url_for('main.teacher_course', course_id=course.id) }}">Open</a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-muted mb-0">No courses are assigned to you yet.</p>
-        {% endif %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">My Courses</h1>
+    <p class="text-muted mb-0">
+      {{ my_courses|length }} course{{ '' if my_courses|length == 1 else 's' }} assigned to you
+    </p>
+  </div>
+  <div class="surface-card p-4 mb-5">
+    {% if my_courses %}
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Students</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in my_courses %}
+              <tr>
+                <td class="text-nowrap">{{ course.course_code }}</td>
+                <td>{{ course.course_name }}</td>
+                <td>{{ course.enrollments|length }}</td>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="{{ url_for('main.teacher_course', course_id=course.id) }}">Open</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <div class="surface-card p-4 p-lg-5 shadow-sm">
-        <p class="section-label mb-2">Teacher</p>
-        <h1 class="h3 fw-semibold mb-4">Prediction</h1>
-        <form method="post" action="{{ url_for('main.teacher_predict') }}">
-          <div class="mb-3">
-            <label class="form-label" for="student_id">Student</label>
-            <select class="form-select form-control-soft"
-                    id="student_id"
-                    name="student_id"
-                    required>
-              <option value="">Select student</option>
-              {% for student in students %}
-                <option value="{{ student.id }}">{{ student.roll_number }} - {{ student.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="row g-2">
-            <div class="col-md-6">
-              <label class="form-label" for="attendance">Attendance %</label>
-              <input class="form-control form-control-soft"
-                     id="attendance"
-                     name="attendance"
-                     type="number"
-                     min="0"
-                     max="100"
-                     step="0.1"
-                     placeholder="0-100"
-                     required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label" for="quiz">Quiz</label>
-              <input class="form-control form-control-soft"
-                     id="quiz"
-                     name="quiz"
-                     type="number"
-                     min="0"
-                     max="50"
-                     step="0.1"
-                     placeholder="0-50"
-                     required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label" for="assignment">Assignment</label>
-              <input class="form-control form-control-soft"
-                     id="assignment"
-                     name="assignment"
-                     type="number"
-                     min="0"
-                     max="25"
-                     step="0.1"
-                     placeholder="0-25"
-                     required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label" for="midterm">Midterm</label>
-              <input class="form-control form-control-soft"
-                     id="midterm"
-                     name="midterm"
-                     type="number"
-                     min="0"
-                     max="100"
-                     step="0.1"
-                     placeholder="0-100"
-                     required>
-            </div>
-          </div>
-          <button class="btn btn-primary mt-4 px-4" type="submit">Predict</button>
-        </form>
+    {% else %}
+      <p class="text-muted mb-0">No courses are assigned to you yet.</p>
+    {% endif %}
+  </div>
+  <h2 class="h4 mb-3">Prediction</h2>
+  <div class="surface-card p-4">
+    <form method="post" action="{{ url_for('main.teacher_predict') }}">
+      <div class="row g-3">
+        <div class="col-lg-4">
+          <label class="form-label" for="student_id">Student</label>
+          <select class="form-select form-control-soft"
+                  id="student_id"
+                  name="student_id"
+                  required>
+            <option value="">Select student</option>
+            {% for student in students %}
+              <option value="{{ student.id }}">{{ student.roll_number }} - {{ student.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="attendance">Attendance %</label>
+          <input class="form-control form-control-soft"
+                 id="attendance"
+                 name="attendance"
+                 type="number"
+                 min="0"
+                 max="100"
+                 step="0.1"
+                 placeholder="0-100"
+                 required>
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="quiz">Quiz</label>
+          <input class="form-control form-control-soft"
+                 id="quiz"
+                 name="quiz"
+                 type="number"
+                 min="0"
+                 max="50"
+                 step="0.1"
+                 placeholder="0-50"
+                 required>
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="assignment">Assignment</label>
+          <input class="form-control form-control-soft"
+                 id="assignment"
+                 name="assignment"
+                 type="number"
+                 min="0"
+                 max="25"
+                 step="0.1"
+                 placeholder="0-25"
+                 required>
+        </div>
+        <div class="col-6 col-lg-2">
+          <label class="form-label" for="midterm">Midterm</label>
+          <input class="form-control form-control-soft"
+                 id="midterm"
+                 name="midterm"
+                 type="number"
+                 min="0"
+                 max="100"
+                 step="0.1"
+                 placeholder="0-100"
+                 required>
+        </div>
       </div>
-    </div>
+      <button class="btn btn-primary mt-4 px-4" type="submit">Predict</button>
+    </form>
   </div>
 {% endblock %}

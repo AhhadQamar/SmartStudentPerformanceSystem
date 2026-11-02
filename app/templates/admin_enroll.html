@@ -1,27 +1,31 @@
 {% extends 'base.html' %}
-{% block title %}Enrollment | Smart Student Performance System{% endblock %}
+{% block title %}{{ course.course_code }} Enrollment | Smart Student Performance System{% endblock %}
 {% block content %}
-  <div class="row g-5 align-items-start justify-content-center">
+  <div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <h1 class="h2 mb-1">{{ course.course_code }} &middot; {{ course.course_name }}</h1>
+      <p class="text-muted mb-0">{{ course.enrollments|length }} enrolled</p>
+    </div>
+    <a class="btn btn-outline-secondary px-4"
+       href="{{ url_for('main.admin_courses') }}">Back to courses</a>
+  </div>
+  <div class="row g-4 align-items-start">
     {# ---- Left: add a student to this course ---- #}
     <div class="col-lg-4">
-      <div class="surface-card p-4 shadow-md">
-        <p class="section-label mb-2">{{ course.course_code }}</p>
-        <h1 class="h4 fw-semibold">Enroll Student</h1>
+      <div class="surface-card p-4">
+        <h2 class="h5 mb-3">Enroll a student</h2>
         {% if available_students %}
           <form method="POST">
-            <div class="mb-4">
-              <label class="form-label" for="student_id">Student</label>
-              {# Only students who are NOT already in the course are listed #}
-              <select class="form-select form-control-soft"
-                      name="student_id"
-                      id="student_id"
-                      required>
-                <option value="">Choose a student</option>
-                {% for student in available_students %}
-                  <option value="{{ student.id }}">{{ student.name }} ({{ student.roll_number }})</option>
-                {% endfor %}
-              </select>
-            </div>
+            {# Only students who are NOT already in the course are listed #}
+            <select class="form-select form-control-soft mb-3"
+                    name="student_id"
+                    aria-label="Student"
+                    required>
+              <option value="">Choose a student</option>
+              {% for student in available_students %}
+                <option value="{{ student.id }}">{{ student.name }} ({{ student.roll_number }})</option>
+              {% endfor %}
+            </select>
             <button class="btn btn-primary w-100" type="submit">Enroll</button>
           </form>
         {% else %}
@@ -31,23 +35,15 @@
     </div>
     {# ---- Right: students currently in this course ---- #}
     <div class="col-lg-8">
-      <div class="surface-card p-4 shadow-md">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <p class="section-label mb-2">{{ course.course_name }}</p>
-            <h2 class="h4 fw-semibold mb-0">Enrolled Students</h2>
-          </div>
-          <a class="btn btn-outline-secondary btn-sm"
-             href="{{ url_for('main.admin_courses') }}">Back</a>
-        </div>
+      <div class="surface-card p-4">
         {% if course.enrollments %}
           <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle">
               <thead>
                 <tr>
                   <th>Roll</th>
                   <th>Name</th>
-                  <th>Actions</th>
+                  <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,7 +52,7 @@
                     {# enrollment.student follows the foreign key to the Student row #}
                     <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
                     <td>{{ enrollment.student.name }}</td>
-                    <td class="text-nowrap">
+                    <td class="text-end text-nowrap">
                       <form method="POST"
                             class="d-inline"
                             action="{{ url_for('main.admin_unenroll', course_id=course.id, student_id=enrollment.student_id) }}"

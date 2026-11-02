@@ -10,7 +10,8 @@
   --border-subtle: #363646;
   --border-input: #54546d;
   --border-hover: #938aa9;
-  /* text */
+
+  /* text (muted) 
   --text-primary: #dcd7ba;
   --text-bright: #eae5c8;
   --text-muted: #9a9888;
@@ -68,6 +69,7 @@ a:hover {
 }
 
 /* ---------- Navbar ---------- */
+/* A bar with a gap around it that stays at the top while you scroll. */
 .app-navbar {
   position: sticky;
   top: 0.75rem;
@@ -113,6 +115,23 @@ a:hover {
   border-radius: var(--radius-sm) !important;
 }
 
+/* page links in the navbar; "active" is the page you are on */
+.app-nav-link {
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-weight: 500;
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.app-nav-link:hover,
+.app-nav-link.active {
+  color: var(--text-bright);
+  background: var(--bg-hover);
+}
+
 /* The S2P logo */
 .brand-mark {
   display: inline-flex;
@@ -127,6 +146,12 @@ a:hover {
   font-weight: 700;
 }
 
+/* ---------- Page header ---------- */
+/* the title block at the top of every page */
+.page-header {
+  margin-bottom: 2rem;
+}
+
 /* ---------- Cards ---------- */
 .surface-card {
   background: var(--bg-surface);
@@ -138,11 +163,6 @@ a:hover {
 
 .surface-card p:last-child {
   margin-bottom: 0;
-}
-
-.surface-card > .d-flex:first-child {
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-subtle);
 }
 
 /* ---------- Alerts ---------- */
@@ -188,12 +208,6 @@ h6 {
   letter-spacing: -0.01em;
 }
 
-.section-label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
 .text-muted {
   color: var(--text-muted) !important;
 }
@@ -205,6 +219,7 @@ h6 {
   font-weight: 500;
 }
 
+/* background-color (not "background") so the dropdown arrow on selects stays */
 .form-control-soft {
   background-color: var(--bg-input);
   color: var(--text-bright);
@@ -227,6 +242,7 @@ h6 {
 }
 
 /* ---------- Buttons ---------- */
+/* The only animation on buttons: colors fade over 0.12 seconds. */
 .btn {
   border-radius: var(--radius-md);
   font-weight: 500;
@@ -293,6 +309,7 @@ h6 {
 }
 
 .table thead th {
+  padding-bottom: 0.75rem;
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-muted);
@@ -315,6 +332,110 @@ h6 {
   border-radius: var(--radius-lg);
 }
 
+/* ---------- Admin dashboard ---------- */
+.stat-strip {
+  display: flex;
+}
+
+.stat {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.stat + .stat {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.stat-number {
+  margin-bottom: 0.4rem;
+  font-family: "Lora", Georgia, serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-bright);
+}
+
+.stat-label {
+  color: var(--text-muted);
+}
+
+/* on a phone the three numbers stack, with lines between them */
+@media (max-width: 575px) {
+  .stat-strip {
+    flex-direction: column;
+  }
+
+  .stat + .stat {
+    border-left: 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
+.manage-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  color: var(--text-primary);
+}
+
+.manage-row + .manage-row {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.manage-row:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.manage-arrow {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+.manage-row:hover .manage-arrow {
+  color: var(--accent);
+}
+
+/* ---------- Landing page ---------- */
+.hero {
+  max-width: 44rem;
+  padding: 2rem 0 0.5rem;
+}
+
+.hero-text {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+/* three numbered steps with thin lines between them */
+.steps {
+  max-width: 44rem;
+  margin: 3.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.steps p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.step-number {
+  width: 2rem;
+  font-family: "Lora", Georgia, serif;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  color: var(--accent);
+}
+
 /* ---------- Prediction result ---------- */
 .result-box {
   background: var(--bg-input);
@@ -335,7 +456,9 @@ h6 {
   color: var(--accent);
 }
 
-/* ---------- Layout ---------- */
-.row.justify-content-center > [class*="col-"] {
-  max-width: 760px;
+/* ---------- Footer ---------- */
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }

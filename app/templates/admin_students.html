@@ -1,26 +1,37 @@
 {% extends 'base.html' %}
-{% block title %}
-  Students | Smart Student Performance
-  System
-{% endblock %}
+{% block title %}Students | Smart Student Performance System{% endblock %}
 {% block content %}
-  <div class="row g-5 align-items-start justify-content-center">
-    <div class="col-lg-4">
-      <div class="surface-card p-4 shadow-md">
-        <p class="section-label mb-2">Administrator</p>
-        <h1 class="h4 fw-semibold">Add Students</h1>
-        <form method="POST">
-          <div class="mb-3">
+  <div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <h1 class="h2 mb-1">Students</h1>
+      <p class="text-muted mb-0">
+        {{ students|length }} student{{ '' if students|length == 1 else 's' }}
+        {% if search_text %}matching "{{ search_text }}"{% endif %}
+      </p>
+    </div>
+    {# data-bs-toggle="collapse" is built into Bootstrap: it shows or hides the
+       element named in data-bs-target. We don't need any JavaScript of our own. #}
+    <button class="btn btn-primary px-4"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#add-student">Add student</button>
+  </div>
+  {# The "Add Student" form. It stays hidden until the button above is clicked. #}
+  <div class="collapse" id="add-student">
+    <div class="surface-card p-4 mb-4">
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-3">
             <label class="form-label" for="roll_number">Roll Number</label>
             <input class="form-control form-control-soft"
                    type="text"
                    name="roll_number"
                    id="roll_number"
-                   placeholder="e.g. BC230516165"
+                   placeholder="e.g. SP24-BSCS-045"
                    required />
           </div>
-          <div class="mb-3">
-            <label for="name" class="from-label">Name</label>
+          <div class="col-md-6 col-lg-3">
+            <label class="form-label" for="name">Name</label>
             <input class="form-control form-control-soft"
                    type="text"
                    name="name"
@@ -28,7 +39,7 @@
                    placeholder="Student name"
                    required />
           </div>
-          <div class="mb-3">
+          <div class="col-md-6 col-lg-3">
             <label class="form-label" for="email">Email</label>
             <input class="form-control form-control-soft"
                    type="email"
@@ -37,7 +48,7 @@
                    placeholder="student@example.com"
                    required />
           </div>
-          <div class="mb-4">
+          <div class="col-md-6 col-lg-3">
             <label class="form-label" for="contact">Contact</label>
             <input class="form-control form-control-soft"
                    type="text"
@@ -46,72 +57,62 @@
                    placeholder="03001234567"
                    required />
           </div>
-          <button class="btn btn-primary w-100" type="submit">Add Student</button>
-        </form>
-      </div>
-    </div>
-    <div class="col-lg-8">
-      <div class="surface-card p-4 shadow-md">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <p class="section-label mb-2">Student List</p>
-            <h2 class="h4 fw-semibold mb-0">Saved Students</h2>
-          </div>
-          <a class='btn btn-outline-secondary btn-sm'
-             href="{{ url_for('main.dashboard') }}">Back</a>
         </div>
-        {# method="GET" puts the search text in the URL as ?q=..., so the page can be bookmarked #}
-        <form method="GET" class="d-flex gap-2 mb-3">
-          <input class="form-control form-control-soft"
-                 type="text"
-                 name="q"
-                 value="{{ search_text }}"
-                 placeholder="Search by name or roll number" />
-          <button class="btn btn-primary" type="submit">Search</button>
-          {% if search_text %}
-            <a class="btn btn-outline-secondary"
-               href="{{ url_for('main.admin_students') }}">Clear</a>
-          {% endif %}
-        </form>
-        {% if students %}
-          <div class="table-responsive">
-            <table class='table align-middle mb-0 '>
-              <thead>
-                <tr>
-                  <th>Roll</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Contact</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for student in students %}
-                  <tr>
-                    <td class="text-nowrap">{{ student.roll_number }}</td>
-                    <td>{{ student.name }}</td>
-                    <td>{{ student.email }}</td>
-                    <td>{{ student.contact }}</td>
-                    <td class="text-nowrap">
-                      {# url_for fills the <int:student_id> part of the URL with this student's id #}
-                      <a class="btn btn-outline-secondary btn-sm me-1"
-                         href="{{ url_for('main.admin_edit_student', student_id=student.id) }}">Edit</a>
-                      <form method="POST"
-                            action="{{ url_for('main.admin_delete_student', student_id=student.id) }}"
-                            class="d-inline"
-                            onsubmit="return confirm('Delete this student? Their marks, attendance and predictions will be deleted too.');">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                      </form>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-muted mb-0">No students found.</p>
-        {% endif %}
-      </div>
+        <button class="btn btn-primary mt-4 px-4" type="submit">Save student</button>
+      </form>
     </div>
+  </div>
+  <div class="surface-card p-4">
+    <form method="GET" class="d-flex gap-2 mb-3">
+      <input class="form-control form-control-soft"
+             type="text"
+             name="q"
+             value="{{ search_text }}"
+             placeholder="Search by name or roll number" />
+      <button class="btn btn-primary px-4" type="submit">Search</button>
+      {% if search_text %}
+        <a class="btn btn-outline-secondary"
+           href="{{ url_for('main.admin_students') }}">Clear</a>
+      {% endif %}
+    </form>
+    {% if students %}
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Roll</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Contact</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+              <tr>
+                <td class="text-nowrap">{{ student.roll_number }}</td>
+                <td>{{ student.name }}</td>
+                <td>{{ student.email }}</td>
+                <td class="text-nowrap">{{ student.contact }}</td>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-outline-secondary btn-sm me-1"
+                     href="{{ url_for('main.admin_edit_student', student_id=student.id) }}">Edit</a>
+                  {# A form, so it sends a POST. onsubmit shows a confirm box:
+                     OK sends the form, Cancel stops it. #}
+                  <form method="POST"
+                        action="{{ url_for('main.admin_delete_student', student_id=student.id) }}"
+                        class="d-inline"
+                        onsubmit="return confirm('Delete this student? Their marks, attendance and predictions will be deleted too.');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No students found.</p>
+    {% endif %}
   </div>
 {% endblock %}

@@ -1,17 +1,40 @@
 {% extends 'base.html' %}
-{% block title %}Admin Dashboard | Smart Student Performance System{% endblock %}
-  {% block content %}
-    <div class="row justify-content-center">
-      <div class="col-lg-8 col-xl-7">
-        <div class="surface-card p-4 p-lg-5 shadow-sm">
-          <p class="section-label mb-2">Administrator</p>
-          <h1 class="h3 fw-semibold mb-3">Dashboard</h1>
-          <p class="text-muted mb-4">Manage students and courses.</p>
-          <a class="btn btn-primary px-4"
-             href="{{ url_for('main.admin_students') }}">Manage students</a>
-          <a class="btn btn-primary px-4 ms-2"
-             href="{{ url_for('main.admin_courses') }}">Manage courses</a>
-        </div>
-      </div>
+{% block title %}Dashboard | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Dashboard</h1>
+    <p class="text-muted mb-0">Students, courses and teachers in the system.</p>
+  </div>
+  {# The three numbers sit side by side in ONE card, with thin lines between them. #}
+  <div class="surface-card stat-strip mb-4">
+    <div class="stat">
+      <p class="stat-number">{{ student_count }}</p>
+      <p class="stat-label">Students</p>
     </div>
-  {% endblock %}
+    <div class="stat">
+      <p class="stat-number">{{ course_count }}</p>
+      <p class="stat-label">Courses</p>
+    </div>
+    <div class="stat">
+      <p class="stat-number">{{ teacher_count }}</p>
+      <p class="stat-label">Teachers</p>
+    </div>
+  </div>
+  {# Each row is one big link to a management page. #}
+  <div class="surface-card">
+    <a class="manage-row" href="{{ url_for('main.admin_students') }}">
+      <div>
+        <h2 class="h5 mb-1">Students</h2>
+        <p class="text-muted mb-0">Add, edit, search and delete student records.</p>
+      </div>
+      <span class="manage-arrow">&rarr;</span>
+    </a>
+    <a class="manage-row" href="{{ url_for('main.admin_courses') }}">
+      <div>
+        <h2 class="h5 mb-1">Courses</h2>
+        <p class="text-muted mb-0">Create courses, assign teachers and enroll students.</p>
+      </div>
+      <span class="manage-arrow">&rarr;</span>
+    </a>
+  </div>
+{% endblock %}

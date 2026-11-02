@@ -1,17 +1,44 @@
-{%extends 'base.html' %} {%block title %} Smart Student Performance System {%endblock%}{% block content
-%}
-<div class="row justify-content-center">
-  <div class="col-lg-8 col-xl-7">
-    <div class="surface-card p-4 p-lg-5 shadow-sm">
-      <h1 class="display-6 fw-semibold mb-3">
-        Smart Student Performance System
-      </h1>
-      <p class="text-white mb-4">
-        Administrator and Teacher access for student records and prediction.
-      </p>
-      <a class="btn btn-primary px-4" href="{{url_for('main.login')}}">Login</a>
-      <a class="btn btn-primary px-4 mx-3" href="{{url_for('main.register')}}">Sign Up</a>
-    </div>
+{% extends 'base.html' %}
+{% block title %}Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="hero">
+    <h1 class="display-5 fw-semibold mb-3">Smart Student Performance System</h1>
+    <p class="hero-text mb-4">
+      Teachers record marks and attendance. The system predicts each student's
+      final grade and shows which students are at risk, while there is still
+      time to help them.
+    </p>
+    {% if session.get('user_id') %}
+      <a class="btn btn-primary btn-lg px-4"
+         href="{{ url_for('main.dashboard') }}">Go to dashboard</a>
+    {% else %}
+      <a class="btn btn-primary btn-lg px-4"
+         href="{{ url_for('main.login') }}">Login</a>
+      <a class="btn btn-outline-secondary btn-lg px-4 ms-2"
+         href="{{ url_for('main.register') }}">Sign Up</a>
+    {% endif %}
   </div>
-</div>
+  <ol class="steps">
+    <li>
+      <span class="step-number">1</span>
+      <div>
+        <h2 class="h5 mb-1">Set up</h2>
+        <p>The administrator adds students and courses, and enrolls students in each course.</p>
+      </div>
+    </li>
+    <li>
+      <span class="step-number">2</span>
+      <div>
+        <h2 class="h5 mb-1">Record</h2>
+        <p>Teachers enter marks and attendance for their own courses.</p>
+      </div>
+    </li>
+    <li>
+      <span class="step-number">3</span>
+      <div>
+        <h2 class="h5 mb-1">Predict</h2>
+        <p>The system predicts each student's final grade and risk level from the marks so far.</p>
+      </div>
+    </li>
+  </ol>
 {% endblock %}
