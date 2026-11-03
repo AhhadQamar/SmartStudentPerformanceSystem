@@ -28,6 +28,8 @@ def percentage_to_grade(percentage):
 
 
 def calculate_grade(quiz, assignment, midterm, final):
+    check_weights()
+
     scores = {
         "quiz": quiz,
         "assignment": assignment,
@@ -42,12 +44,11 @@ def calculate_grade(quiz, assignment, midterm, final):
     if len(missing) > 0:
         return {"status": "Incomplete", "missing": missing}
 
-    check_weights()
-
     percentage = 0
     for name in WEIGHTS:
         percentage += (scores[name] / MAX_MARKS[name]) * WEIGHTS[name]
     percentage = round(percentage, 1)
+
     return {
         "status": "Complete",
         "percentage": percentage,

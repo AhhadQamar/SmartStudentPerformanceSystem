@@ -11,6 +11,7 @@ from .constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from .extensions import db
 from .models import Attendance, Course, Enrollment, Marks, Student, User
 from .utils import (
+    GradeConfigError,
     attendance_percentage,
     calculate_percentage,
     check_password_rules,
@@ -252,6 +253,12 @@ def teacher_marks():
                     recalculate_marks(marks)
 
                 db.session.commit()
+            except GradeConfigError as error:
+                db.session.rollback()
+                flash(
+                    f"Grading configuration error: {error}. Please fix the grading settings.",
+                    "danger",
+                )
             except Exception:
                 db.session.rollback()
                 flash(
