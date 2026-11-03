@@ -1,8 +1,8 @@
 # Small helper functions that the routes can call.
 
-from sqlalchemy.sql.roles import TruncatedLabelRole
-
 from .config_grading import GRADE_SCALE, MAX_MARKS, WEIGHTS
+from .constants import STATUS_PRESENT
+from .models import Attendance
 
 
 # an exception class for invalid grading configuration
@@ -47,7 +47,7 @@ def calculate_grade(quiz, assignment, midterm, final):
     percentage = 0
     for name in WEIGHTS:
         percentage += (scores[name] / MAX_MARKS[name]) * WEIGHTS[name]
-
+    percentage = round(percentage, 1)
     return {
         "status": "Complete",
         "percentage": percentage,
@@ -63,7 +63,6 @@ def check_password_rules(password):
     has_upper = False
     has_lower = False
     has_digit = False
-    has_special = False
     for char in password:
         if char.isupper():
             has_upper = True
@@ -83,7 +82,7 @@ def check_password_rules(password):
 
 def recalculate_marks(marks):
     # marks is one row of the marks table, as a dictionary. It has keys: quiz, assignment, midterm, final.
-    # we calculate the percentage and grade, and add them to the dictionary. If any of the marks are missing, we set percentage and grade to None
+    # we calculate the percentage and grade, and add them to object. If any of the marks are missing, we set percentage and grade to None
     result = calculate_grade(marks.quiz, marks.assignment, marks.midterm, marks.final)
     if result["status"] == "Complete":
         marks.percentage = result["percentage"]
@@ -91,6 +90,20 @@ def recalculate_marks(marks):
     else:
         marks.percentage = None
         marks.grade = None
+
+
+# returns the percentage of the days this student was present in this course.
+def attendance_percentage(student_id, course_id):
+
+    total = Attendance.query.filter_by(
+        student_id=student_id, course_id=course_id
+    ).count()
+    if total == 0:
+        return None
+    present = Attendance.query.filter_by(
+        student_id=student_id, course_id=course_id, status=STATUS_PRESENT
+    ).count()
+    return round(present / total * 100, 1)
 
 
 # OLD PROTOTYPE Code
