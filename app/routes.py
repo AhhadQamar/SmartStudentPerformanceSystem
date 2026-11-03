@@ -1,16 +1,21 @@
 import pickle
+from datetime import date
 from functools import wraps
 from pathlib import Path
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
-from sqlalchemy.orm import query
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .config_grading import MAX_MARKS
-from .constants import ROLE_ADMIN, ROLE_TEACHER
+from .config_grading import ATTENDANCE_THRESHOLD, MAX_MARKS
+from .constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from .extensions import db
-from .models import Course, Enrollment, Marks, Student, User
-from .utils import calculate_percentage, check_password_rules, recalculate_marks
+from .models import Attendance, Course, Enrollment, Marks, Student, User
+from .utils import (
+    attendance_percentage,
+    calculate_percentage,
+    check_password_rules,
+    recalculate_marks,
+)
 
 # setting up the main blueprint for the app.
 main = Blueprint("main", __name__)
@@ -278,6 +283,138 @@ def teacher_marks():
         show_students=show_students,
         existing=existing,
         typed=typed,
+    )
+
+
+# route for the page where a teacher can type in the attendance for one course. This will allow the teacher to enter the attendance for each student in the course
+@main.route("/teacher/attendance", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_attendance():
+    my_courses = (
+        Course.query.filter_by(teacher_id=session["user_id"])
+        .order_by(Course.course_code)
+        .all()
+    )
+    course_id = request.args.get("course", "")
+    date_text = request.args.get("date", "")
+
+    course = None
+    if course_id.isdigit():
+        course = Course.query.get(int(course_id))
+        if course is None or course.teacher_id != session["user_id"]:
+            flash("Course not found.", "danger")
+            return redirect(url_for("main.teacher_attendance"))
+
+    chosen_date = None
+    if date_text:
+        try:
+            chosen_date = date.fromisoformat(date_text)
+        except ValueError:
+            flash("Please choose a valid date.", "danger")
+            return redirect(url_for("main.teacher_attendance"))
+        if chosen_date > date.today():
+            flash("You cannot choose a future date.", "danger")
+            return redirect(url_for("main.teacher_attendance"))
+
+    show_students = course is not None and chosen_date is not None
+
+    saved_records = {}
+    if show_students:
+        records = Attendance.query.filter_by(
+            course_id=course.id, record_date=chosen_date
+        ).all()
+        for record in records:
+            saved_records[record.student_id] = record.status
+    already_recorded = len(saved_records) > 0
+
+    typed = {}
+    if request.method == "POST":
+        if not show_students:
+            flash("Choose a course and a date first.", "danger")
+            return redirect(url_for("main.teacher_attendance"))
+
+        if already_recorded:
+            flash(
+                "Attendance for this date has already been recorded. You cannot change it.",
+                "danger",
+            )
+        elif len(course.enrollments) == 0:
+            flash("There are no students enrolled in this course.", "danger")
+        else:
+            statuses = {}
+            for enrollment in course.enrollments:
+                status = request.form.get(f"status_{enrollment.student_id}", "").strip()
+                if status == STATUS_PRESENT or status == STATUS_ABSENT:
+                    statuses[enrollment.student_id] = status
+            if len(statuses) < len(course.enrollments):
+                flash("You must mark all students as present or absent.", "danger")
+            else:
+                try:
+                    for student_id, status in statuses.items():
+                        db.session.add(
+                            Attendance(
+                                student_id=student_id,
+                                course_id=course.id,
+                                record_date=chosen_date,
+                                status=status,
+                            )
+                        )
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                    flash(
+                        "The attendance could not be saved. Nothing was changed, please try again.",
+                        "danger",
+                    )
+                else:
+                    flash(
+                        f"Saved attendance for {len(statuses)} student(s).", "success"
+                    )
+
+                    low_attendance = []
+                    for enrollment in course.enrollments:
+                        percent = attendance_percentage(
+                            enrollment.student_id, course.id
+                        )
+                        if percent is not None and percent < ATTENDANCE_THRESHOLD:
+                            low_attendance.append(enrollment.student.name)
+                    if low_attendance:
+                        flash(
+                            "Warning: The following students have low attendance: "
+                            + ", ".join(low_attendance),
+                            "warning",
+                        )
+                    return redirect(
+                        url_for(
+                            "main.teacher_attendance",
+                            course=course.id,
+                            date=chosen_date,
+                        )
+                    )
+    summary = []
+    if course is not None:
+        for enrollment in course.enrollments:
+            student = enrollment.student
+            percent = attendance_percentage(student.id, course.id)
+            summary.append(
+                {
+                    "student": student,
+                    "percent": percent,
+                }
+            )
+    return render_template(
+        "teacher_attendance.html",
+        my_courses=my_courses,
+        course=course,
+        date_value=date_text or date.today().isoformat(),
+        chosen_date=chosen_date,
+        show_students=show_students,
+        already_recorded=already_recorded,
+        saved_records=saved_records,
+        summary=summary,
+        typed=typed,
+        threshold=ATTENDANCE_THRESHOLD,
     )
 
 

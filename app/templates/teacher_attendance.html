@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Attendance | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Attendance</h1>
+    <p class="text-muted mb-0">Choose a course and a date, then mark each student.</p>
+  </div>
+  {# Step 1: choose a course and a date. A GET form puts the choice in the URL. #}
+  <div class="surface-card p-4 mb-4">
+    <form method="GET">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label" for="course">Course</label>
+          <select class="form-select form-control-soft"
+                  name="course"
+                  id="course"
+                  required>
+            <option value="">Choose a course</option>
+            {% for my_course in my_courses %}
+              <option value="{{ my_course.id }}"
+                      {% if course and course.id == my_course.id %}selected{% endif %}>
+                {{ my_course.course_code }} &middot; {{ my_course.course_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="date">Date</label>
+          <input class="form-control form-control-soft"
+                 type="date"
+                 name="date"
+                 id="date"
+                 value="{{ date_value }}"
+                 required>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary w-100" type="submit">Load students</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {# Step 2: the students for that course and day. #}
+  {% if show_students %}
+    <div class="surface-card p-4 mb-4">
+      <h2 class="h5 mb-3">{{ course.course_code }} &middot; {{ chosen_date.strftime("%d %b %Y") }}</h2>
+      {% if not course.enrollments %}
+        <p class="text-muted mb-0">No students are enrolled in this course yet.</p>
+      {% elif already_recorded %}
+        {# Already saved: show what was recorded. No form, so it cannot be saved twice. #}
+        <p class="text-muted">Attendance for this day has already been recorded.</p>
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for enrollment in course.enrollments %}
+                {% set status = saved_records.get(enrollment.student.id) %}
+                <tr>
+                  <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
+                  <td>{{ enrollment.student.name }}</td>
+                  <td>
+                    {% if status == 'Present' %}
+                      <span class="status-present">Present</span>
+                    {% elif status == 'Absent' %}
+                      <span class="status-absent">Absent</span>
+                    {% else %}
+                      <span class="text-muted">Not recorded</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {# No action="..." so the form posts to the page's own URL, query string included. #}
+        <form method="POST">
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Roll</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for enrollment in course.enrollments %}
+                  {% set student_id = enrollment.student.id %}
+                  <tr>
+                    <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
+                    <td>{{ enrollment.student.name }}</td>
+                    <td class="text-nowrap">
+                      {# Two radio buttons with the same name: only one can be chosen.
+                         "status_5" tells Python which student the choice is for. #}
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="status_{{ student_id }}"
+                               id="present_{{ student_id }}"
+                               value="Present"
+                               {% if typed.get('status_' ~ student_id) == 'Present' %}checked{% endif %}>
+                        <label class="form-check-label" for="present_{{ student_id }}">Present</label>
+                      </div>
+                      <div class="form-check form-check-inline">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="status_{{ student_id }}"
+                               id="absent_{{ student_id }}"
+                               value="Absent"
+                               {% if typed.get('status_' ~ student_id) == 'Absent' %}checked{% endif %}>
+                        <label class="form-check-label" for="absent_{{ student_id }}">Absent</label>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <button class="btn btn-primary mt-3 px-4" type="submit">Save attendance</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+  {# The overall attendance of every student in the chosen course. #}
+  {% if course and course.enrollments %}
+    <h2 class="h4 mb-3">Attendance so far</h2>
+    <div class="surface-card p-4">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Roll</th>
+              <th>Name</th>
+              <th>Attendance</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in summary %}
+              <tr>
+                <td class="text-nowrap">{{ row.student.roll_number }}</td>
+                <td>{{ row.student.name }}</td>
+                <td>
+                  {% if row.percent is none %}
+                    <span class="text-muted">&mdash;</span>
+                  {% else %}
+                    {{ row.percent }}%
+                  {% endif %}
+                </td>
+                <td>
+                  {% if row.percent is not none and row.percent < threshold %}
+                    <span class="status-absent">Below {{ threshold }}%</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

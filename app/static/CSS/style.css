@@ -466,3 +466,24 @@ h6 {
 .mark-input {
   max-width: 8rem;
 }
+/* ---------- Attendance ---------- */
+.status-present {
+  color: var(--accent-success);
+  font-weight: 500;
+}
+
+.status-absent {
+  color: var(--accent-danger);
+  font-weight: 500;
+}
+
+/* radio buttons use our accent color instead of Bootstrap's blue */
+.form-check-input:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.form-check-input:focus {
+  border-color: var(--accent);
+  box-shadow: none;
+}

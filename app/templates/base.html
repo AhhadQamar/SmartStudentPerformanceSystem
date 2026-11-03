@@ -40,6 +40,8 @@
                  href="{{ url_for('main.dashboard') }}">My Courses</a>
               <a class="app-nav-link {% if request.endpoint == 'main.teacher_marks' %}active{% endif %}"
                  href="{{ url_for('main.teacher_marks') }}">Marks</a>
+              <a class="app-nav-link {% if request.endpoint == 'main.teacher_attendance' %}active{% endif %}"
+                 href="{{ url_for('main.teacher_attendance') }}">Attendance</a>
             {% endif %}
           </div>
         {% endif %}
