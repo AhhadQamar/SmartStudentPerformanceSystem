@@ -425,6 +425,91 @@ def teacher_attendance():
     )
 
 
+# Page where a teacher sees the marks, percentage and grade of every student in a course.
+# The URL carries the choice: /teacher/grades?course=1&sort=grade
+@main.route("/teacher/grades")
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_grades():
+    # The courses for the dropdown: only this teacher's own.
+    my_courses = (
+        Course.query.filter_by(teacher_id=session["user_id"])
+        .order_by(Course.course_code)
+        .all()
+    )
+
+    course_id = request.args.get("course", "")
+    sort = request.args.get("sort", "name")
+
+    # Find the chosen course and check it belongs to this teacher.
+    course = None
+    if course_id.isdigit():
+        course = Course.query.get(int(course_id))
+        if course is None or course.teacher_id != session["user_id"]:
+            flash("Course not found.", "danger")
+            return redirect(url_for("main.teacher_grades"))
+
+    rows = []  # one dictionary per enrolled student, for the table
+    has_marks = False  # becomes True if at least one mark exists in this course
+
+    if course is not None:
+        # All the Marks rows of this course, looked up by student id.
+        marks_by_student = {}
+        for marks in Marks.query.filter_by(course_id=course.id).all():
+            marks_by_student[marks.student_id] = marks
+
+        for enrollment in course.enrollments:
+            student = enrollment.student
+            marks = marks_by_student.get(student.id)  # None if no marks at all yet
+
+            row = {"student": student, "percentage": None, "grade": None, "missing": []}
+
+            # Copy each of the four marks into the row, and note the missing ones.
+            for name in MAX_MARKS:
+                value = None
+                if marks is not None:
+                    value = getattr(marks, name)
+                row[name] = value
+
+                if value is None:
+                    row["missing"].append(name)
+                else:
+                    has_marks = True
+
+            if marks is not None:
+                row["percentage"] = marks.percentage
+                row["grade"] = marks.grade
+            rows.append(row)
+
+        # Put the rows in the order the teacher asked for.
+        if sort == "roll":
+            rows.sort(key=lambda row: row["student"].roll_number)
+        elif sort == "grade":
+            # Highest percentage first. Students without a grade go at the end.
+            graded = []
+            not_graded = []
+            for row in rows:
+                if row["percentage"] is None:
+                    not_graded.append(row)
+                else:
+                    graded.append(row)
+            graded.sort(key=lambda row: row["percentage"], reverse=True)
+            rows = graded + not_graded
+        else:
+            sort = "name"
+            rows.sort(key=lambda row: row["student"].name.lower())
+
+    return render_template(
+        "teacher_grades.html",
+        my_courses=my_courses,
+        course=course,
+        sort=sort,
+        rows=rows,
+        has_marks=has_marks,
+        max_marks=MAX_MARKS,
+    )
+
+
 # route for the admin to manage students. This will allow the admin to add new students and view the list of existing students. If the user does not have permission, they will be redirected to the index page with a flash message.
 @main.route("/admin/students", methods=["GET", "POST"])
 @login_required

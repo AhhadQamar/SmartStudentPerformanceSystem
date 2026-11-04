@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Grades | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Grades</h1>
+    <p class="text-muted mb-0">The marks, percentage and grade of every student in a course.</p>
+  </div>
+  {# Choose a course and an order. A GET form puts the choice in the URL. #}
+  <div class="surface-card p-4 mb-4">
+    <form method="GET">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label" for="course">Course</label>
+          <select class="form-select form-control-soft"
+                  name="course"
+                  id="course"
+                  required>
+            <option value="">Choose a course</option>
+            {% for my_course in my_courses %}
+              <option value="{{ my_course.id }}"
+                      {% if course and course.id == my_course.id %}selected{% endif %}>
+                {{ my_course.course_code }} &middot; {{ my_course.course_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="sort">Sort by</label>
+          <select class="form-select form-control-soft" name="sort" id="sort">
+            <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
+            <option value="roll" {% if sort == 'roll' %}selected{% endif %}>Roll number</option>
+            <option value="grade" {% if sort == 'grade' %}selected{% endif %}>Grade (highest first)</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary w-100" type="submit">Show grades</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% if course %}
+    <div class="surface-card p-4">
+      <h2 class="h5 mb-3">{{ course.course_code }} &middot; {{ course.course_name }}</h2>
+      {% if not course.enrollments %}
+        <p class="text-muted mb-0">No students are enrolled in this course yet.</p>
+      {% elif not has_marks %}
+        <p class="text-muted mb-0">No marks available for this course yet.</p>
+      {% else %}
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead>
+              <tr>
+                <th>Roll</th>
+                <th>Name</th>
+                {# One column for each part of the course, with its maximum mark #}
+                {% for name, maximum in max_marks.items() %}
+                  <th>
+                    {{ name|capitalize }} <span class="text-muted">/{{ maximum }}</span>
+                  </th>
+                {% endfor %}
+                <th>Percentage</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+                <tr>
+                  <td class="text-nowrap">{{ row.student.roll_number }}</td>
+                  <td>{{ row.student.name }}</td>
+                  {% for name in max_marks %}
+                    <td>
+                      {% if row[name] is none %}
+                        <span class="text-muted">&mdash;</span>
+                      {% else %}
+                        {{ '%g'|format(row[name]) }}
+                      {% endif %}
+                    </td>
+                  {% endfor %}
+                  {% if row.grade %}
+                    <td>{{ '%g'|format(row.percentage) }}%</td>
+                    <td>
+                      <span class="{% if row.grade in ['D', 'F'] %}status-absent{% endif %}">{{ row.grade }}</span>
+                    </td>
+                  {% else %}
+                    {# At least one mark is missing, so we do NOT show a grade. #}
+                    <td>
+                      <span class="text-muted">&mdash;</span>
+                    </td>
+                    <td>
+                      <span class="text-muted">Incomplete</span>
+                      <br>
+                      <small class="text-muted">Missing: {{ row.missing|join(", ") }}</small>
+                    </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock %}
