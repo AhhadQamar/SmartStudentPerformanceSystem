@@ -1,8 +1,8 @@
 # Small helper functions that the routes can call.
 
-from .config_grading import GRADE_SCALE, MAX_MARKS, WEIGHTS
+from .config_grading import GRADE_SCALE, MAX_MARKS, RISK_BY_GRADE, WEIGHTS
 from .constants import STATUS_PRESENT
-from .models import Attendance
+from .models import Attendance, Marks
 
 
 # an exception class for invalid grading configuration
@@ -107,18 +107,28 @@ def attendance_percentage(student_id, course_id):
     return round(present / total * 100, 1)
 
 
-# OLD PROTOTYPE Code
-_MAXIMA = {"attendance": 100, "quiz": 50, "assignment": 25, "midterm": 100}
+def risk_from_grade(grade):
+    # turms a predicted letter grade into a risk level, using the RISK_BY_GRADE dictionary.
+    return RISK_BY_GRADE.get(grade, "Unknown")
 
-_WEIGHTS = {"attendance": 15, "quiz": 20, "assignment": 15, "midterm": 50}
 
+def build_prediction_inputs(student_id, course_id):
+    inputs = {}
+    missing = []
 
-def calculate_percentage(attendance, quiz, assignment, midterm):
-    values = {
-        "attendance": attendance,
-        "quiz": quiz,
-        "assignment": assignment,
-        "midterm": midterm,
-    }
-    return round(sum((values[k] / _MAXIMA[k]) * _WEIGHTS[k] for k in _WEIGHTS), 1)
-    # Divide each score by its max to get 0–1, then multiply by its weight.
+    attendance = attendance_percentage(student_id, course_id)
+    if attendance is None:
+        missing.append("attendance")
+    else:
+        inputs["attendance"] = attendance
+
+    marks = Marks.query.filter_by(student_id=student_id, course_id=course_id).first()
+    for name in ["quiz", "assignment", "midterm"]:
+        value = None
+        if marks is not None:
+            value = getattr(marks, name)
+        if value is None:
+            missing.append(name)
+        else:
+            inputs[name] = round(value / MAX_MARKS[name] * 100, 1)
+    return inputs, missing

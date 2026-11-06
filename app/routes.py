@@ -1,7 +1,6 @@
-import pickle
+import json
 from datetime import date
 from functools import wraps
-from pathlib import Path
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -9,19 +8,19 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .config_grading import ATTENDANCE_THRESHOLD, MAX_MARKS
 from .constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from .extensions import db
-from .models import Attendance, Course, Enrollment, Marks, Student, User
+from .ml import ModelNotAvailableError, predict_grade
+from .models import Attendance, Course, Enrollment, Marks, Prediction, Student, User
 from .utils import (
     GradeConfigError,
     attendance_percentage,
-    calculate_percentage,
+    build_prediction_inputs,
     check_password_rules,
     recalculate_marks,
+    risk_from_grade,
 )
 
 # setting up the main blueprint for the app.
 main = Blueprint("main", __name__)
-
-MODEL_PATH = Path(__file__).resolve().parent / "static" / "model" / "model.pkl"
 
 
 # function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
@@ -48,13 +47,6 @@ def role_required(*allowed_roles):
         return wrapped_view
 
     return decorator
-
-
-def load_model():
-    if not MODEL_PATH.exists():
-        raise FileNotFoundError(f"Model file not found at {MODEL_PATH}")
-    with MODEL_PATH.open("rb") as file:
-        return pickle.load(file)
 
 
 # setting up main route
@@ -146,15 +138,9 @@ def dashboard():
             course_count=course_count,
             teacher_count=teacher_count,
         )
-    if role == ROLE_TEACHER:
-        my_courses = (
-            Course.query.filter_by(teacher_id=session["user_id"])
-            .order_by(Course.course_code)
-            .all()
-        )
-        students = Student.query.order_by(Student.name).all()
         return render_template(
-            "teacher_dashboard.html", my_courses=my_courses, students=students
+            "teacher_dashboard.html",
+            my_courses=my_courses,
         )
     flash("You do not have permission to access this page.", "danger")
     return redirect(url_for("main.index"))
@@ -721,46 +707,107 @@ def admin_unenroll(course_id, student_id):
     return redirect(url_for("main.admin_enroll", course_id=course_id))
 
 
-@main.route("/teacher/predict", methods=["POST"])
+@main.route("/teacher/predict", methods=["GET", "POST"])
 @login_required
 @role_required(ROLE_TEACHER)
 def teacher_predict():
-    student_id = request.form.get("student_id", "").strip()
-    attendance = request.form.get("attendance", "").strip()
-    quiz = request.form.get("quiz", "").strip()
-    assignment = request.form.get("assignment", "").strip()
-    midterm = request.form.get("midterm", "").strip()
-    if not student_id or not attendance or not quiz or not assignment or not midterm:
-        flash("All fields are required.", "danger")
-        return redirect(url_for("main.dashboard"))
-    student = Student.query.get(student_id)
-    if not student:
-        flash("Student not found.", "danger")
-        return redirect(url_for("main.dashboard"))
-    try:
-        attendance = float(attendance)
-        quiz = float(quiz)
-        assignment = float(assignment)
-        midterm = float(midterm)
-    except ValueError:
-        flash(
-            "Attendance, quiz, assignment, and midterm must be numeric values.",
-            "danger",
-        )
-        return redirect(url_for("main.dashboard"))
-    try:
-        model_bundle = load_model()
-        model = model_bundle["model"]
-    except FileNotFoundError:
-        flash("Model file not found. Please train the model first.", "danger")
-        return redirect(url_for("main.dashboard"))
-    input_data = [[attendance, quiz, assignment, midterm]]
-    prediction = model.predict(input_data)[0]
-    percentage = calculate_percentage(attendance, quiz, assignment, midterm)
-    grade = str(prediction)
+    my_courses = (
+        Course.query.filter_by(teacher_id=session["user_id"])
+        .order_by(Course.course_code)
+        .all()
+    )
+
+    course_id = request.args.get("course", "")
+
+    course = None
+    if course_id.isdigit():
+        course = Course.query.get(int(course_id))
+        if course is None or course.teacher_id != session["user_id"]:
+            flash("Course not found.", "danger")
+            return redirect(url_for("main.teacher_predict"))
+
+    selected_student_id = ""  # keeps the chosen student in the dropdown after an error
+
+    if request.method == "POST":
+        if course is None:
+            flash("Choose a course first.", "danger")
+            return redirect(url_for("main.teacher_predict"))
+
+        selected_student_id = request.form.get("student_id", "")
+
+        enrollment = None
+        if selected_student_id.isdigit():
+            enrollment = Enrollment.query.filter_by(
+                student_id=int(selected_student_id), course_id=course.id
+            ).first()
+
+        if enrollment is None:
+            flash("Please choose a student who is enrolled in this course.", "danger")
+        else:
+            student = enrollment.student
+
+            inputs, missing = build_prediction_inputs(student.id, course.id)
+
+            if missing:
+                flash(
+                    f"There is not enough data to predict for {student.name}. "
+                    f"Missing: {', '.join(missing)}.",
+                    "danger",
+                )
+            else:
+                try:
+                    grade = predict_grade(
+                        inputs["attendance"],
+                        inputs["quiz"],
+                        inputs["assignment"],
+                        inputs["midterm"],
+                    )
+                    prediction = Prediction(
+                        student_id=student.id,
+                        course_id=course.id,
+                        predicted_grade=grade,
+                        risk_level=risk_from_grade(grade),
+                        # json.dumps turns the dictionary into text, so it fits in one column
+                        input_snapshot=json.dumps(inputs),
+                    )
+                    db.session.add(prediction)
+                    db.session.commit()
+                except ModelNotAvailableError as error:
+                    db.session.rollback()
+                    flash(f"The prediction model is unavailable. {error}", "danger")
+                except Exception:
+                    db.session.rollback()
+                    flash(
+                        "The prediction failed. Nothing was saved, please try again.",
+                        "danger",
+                    )
+                else:
+                    flash("Prediction saved.", "success")
+                    return redirect(
+                        url_for(
+                            "main.teacher_predict",
+                            course=course.id,
+                            prediction=prediction.id,
+                        )
+                    )
+
+    result = None
+    result_inputs = {}
+    prediction_id = request.args.get("prediction", "")
+    if course is not None and prediction_id.isdigit():
+        result = Prediction.query.filter_by(
+            id=int(prediction_id), course_id=course.id
+        ).first()
+        if result is not None:
+            result_inputs = json.loads(
+                result.input_snapshot
+            )  # text back to a dictionary
+
     return render_template(
-        "prediction.html",
-        student=student,
-        percentage=percentage,
-        grade=grade,
+        "teacher_predict.html",
+        my_courses=my_courses,
+        course=course,
+        selected_student_id=selected_student_id,
+        result=result,
+        result_inputs=result_inputs,
     )

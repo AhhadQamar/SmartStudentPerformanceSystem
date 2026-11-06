@@ -487,3 +487,15 @@ h6 {
   border-color: var(--accent);
   box-shadow: none;
 }
+/* ---------- Risk levels ---------- */
+.result-value.risk-low {
+  color: var(--accent-success);
+}
+
+.result-value.risk-medium {
+  color: var(--accent-warning);
+}
+
+.result-value.risk-high {
+  color: var(--accent-danger);
+}

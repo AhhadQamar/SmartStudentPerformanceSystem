@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Predict | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Predict</h1>
+    <p class="text-muted mb-0">Predict a student's final grade from the marks and attendance saved so far.</p>
+  </div>
+  {# Step 1: choose a course. A GET form puts the choice in the URL. #}
+  <div class="surface-card p-4 mb-4">
+    <form method="GET">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-9">
+          <label class="form-label" for="course">Course</label>
+          <select class="form-select form-control-soft"
+                  name="course"
+                  id="course"
+                  required>
+            <option value="">Choose a course</option>
+            {% for my_course in my_courses %}
+              <option value="{{ my_course.id }}"
+                      {% if course and course.id == my_course.id %}selected{% endif %}>
+                {{ my_course.course_code }} &middot; {{ my_course.course_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary w-100" type="submit">Load students</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {# Step 2: choose a student in that course. #}
+  {% if course %}
+    <div class="surface-card p-4 mb-4">
+      {% if course.enrollments %}
+        {# No action="..." so the form posts to the page's own URL, query string included. #}
+        <form method="POST">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-9">
+              <label class="form-label" for="student_id">Student</label>
+              <select class="form-select form-control-soft"
+                      name="student_id"
+                      id="student_id"
+                      required>
+                <option value="">Choose a student</option>
+                {% for enrollment in course.enrollments %}
+                  <option value="{{ enrollment.student.id }}"
+                          {% if selected_student_id == enrollment.student.id|string %}selected{% endif %}>
+                    {{ enrollment.student.roll_number }} &middot; {{ enrollment.student.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" type="submit">Predict grade</button>
+            </div>
+          </div>
+        </form>
+      {% else %}
+        <p class="text-muted mb-0">No students are enrolled in this course yet.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+  {# The saved prediction, shown after a successful POST. #}
+  {% if result %}
+    <h2 class="h4 mb-3">Result</h2>
+    <div class="surface-card p-4">
+      <p class="mb-4">
+        {{ result.student.roll_number }} &middot; {{ result.student.name }}
+        <span class="text-muted">&middot; {{ result.course.course_code }}</span>
+      </p>
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <div class="result-box">
+            <span class="result-label">Predicted grade</span>
+            <div class="result-value">{{ result.predicted_grade }}</div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="result-box">
+            <span class="result-label">Risk level</span>
+            {# risk-low, risk-medium or risk-high: the CSS gives each its own color #}
+            <div class="result-value risk-{{ result.risk_level|lower }}">{{ result.risk_level }}</div>
+          </div>
+        </div>
+      </div>
+      <h3 class="h6 mb-2">What the prediction was based on</h3>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Attendance</th>
+              <th>Quiz</th>
+              <th>Assignment</th>
+              <th>Midterm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ result_inputs.attendance }}%</td>
+              <td>{{ result_inputs.quiz }}%</td>
+              <td>{{ result_inputs.assignment }}%</td>
+              <td>{{ result_inputs.midterm }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

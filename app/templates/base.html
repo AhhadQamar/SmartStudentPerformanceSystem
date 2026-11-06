@@ -44,6 +44,8 @@
                  href="{{ url_for('main.teacher_attendance') }}">Attendance</a>
               <a class="app-nav-link {% if request.endpoint == 'main.teacher_grades' %}active{% endif %}"
                  href="{{ url_for('main.teacher_grades') }}">Grades</a>
+              <a class="app-nav-link {% if request.endpoint == 'main.teacher_predict' %}active{% endif %}"
+                 href="{{ url_for('main.teacher_predict') }}">Predict</a>
             {% endif %}
           </div>
         {% endif %}
