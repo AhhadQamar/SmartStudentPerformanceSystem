@@ -1,48 +1,27 @@
-import pickle
-from pathlib import Path
+import os
+import sys
 
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / "data" / "student_performance.csv"
-MODEL_PATH = BASE_DIR / "app" / "static" / "model" / "model.pkl"
+from app.ml import MINIMUM_ACCURACY, TrainingError, train_model
 
+try:
+    result = train_model()
+except TrainingError as error:
+    print(f"Training stopped: {error}")
+    print("The existing model, if there is one, was not changed.")
+    sys.exit(1)
 
-def main():
-    data = pd.read_csv(DATA_PATH)
+metrics = result["metrics"]
+print("Model trained and saved.")
+print(f"  accuracy:  {metrics['accuracy']}")
+print(f"  precision: {metrics['precision']}")
+print(f"  recall:    {metrics['recall']}")
+print(
+    f"  trained on {metrics['training_rows']} students, tested on {metrics['test_rows']}"
+)
 
-    feature_columns = ["attendance", "quiz", "assignment", "midterm"]
-
-    X = data[feature_columns]
-    y = data["final_grade"]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
+if result["flagged_for_review"]:
+    print(
+        f"WARNING: accuracy is below {MINIMUM_ACCURACY}. The model is flagged for review."
     )
-
-    model = DecisionTreeClassifier(random_state=42)
-    model.fit(X_train, y_train)
-
-    accuracy = model.score(X_test, y_test)
-    print(f"Model accuracy: {accuracy:.2f}")
-
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with MODEL_PATH.open("wb") as file:
-        pickle.dump(
-            {
-                "model": model,
-                "feature_columns": feature_columns,
-            },
-            file,
-        )
-    print(f"Model saved to {MODEL_PATH}")
-    print(f"training rows: {len(X_train)}, testing rows: {len(X_test)}")
-
-
-if __name__ == "__main__":
-    main()
