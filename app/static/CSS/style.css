@@ -511,3 +511,37 @@ h6 {
 .risk-high {
   color: var(--accent-danger);
 }
+/* ---------- Printing ---------- */
+/* When the page is printed: no navbar, footer or buttons, and dark text on white paper. */
+@media print {
+  .app-navbar,
+  .app-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  .surface-card {
+    background: white;
+    border: 1px solid #999;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .text-muted {
+    color: black !important;
+  }
+
+  .table {
+    --bs-table-color: black;
+    --bs-table-border-color: #bbb;
+  }
+}

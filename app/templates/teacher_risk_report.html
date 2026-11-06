@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Risk Report | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Risk report</h1>
+    <p class="text-muted mb-0">Students grouped by the risk level of their latest prediction.</p>
+  </div>
+  {# no-print: this card is hidden when the page is printed #}
+  <div class="surface-card p-4 mb-4 no-print">
+    <form method="GET">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-9">
+          <label class="form-label" for="course">Course</label>
+          <select class="form-select form-control-soft"
+                  name="course"
+                  id="course"
+                  required>
+            <option value="">Choose a course</option>
+            {% for my_course in my_courses %}
+              <option value="{{ my_course.id }}"
+                      {% if course and course.id == my_course.id %}selected{% endif %}>
+                {{ my_course.course_code }} &middot; {{ my_course.course_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-primary w-100" type="submit">Show report</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  {% if course %}
+    {% if predicted_count == 0 %}
+      <div class="surface-card p-4">
+        <p class="text-muted mb-0">No prediction data available for this course.</p>
+      </div>
+    {% else %}
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <h2 class="h4 mb-0">{{ course.course_code }} &middot; {{ course.course_name }}</h2>
+        {# window.print() opens the browser's print window #}
+        <button class="btn btn-outline-secondary no-print"
+                type="button"
+                onclick="window.print()">Print report</button>
+      </div>
+      {# One card for each risk level: High, Medium, Low #}
+      {% for level, rows in groups.items() %}
+        <div class="surface-card p-4 mb-4">
+          <h3 class="h5 mb-3">
+            <span class="risk-{{ level|lower }}">{{ level }} risk</span>
+            <span class="text-muted">({{ rows|length }})</span>
+          </h3>
+          {% if rows %}
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Roll</th>
+                    <th>Name</th>
+                    <th>Predicted grade</th>
+                    <th>Predicted on</th>
+                    <th class="text-end no-print">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in rows %}
+                    <tr>
+                      <td class="text-nowrap">{{ row.student.roll_number }}</td>
+                      <td>{{ row.student.name }}</td>
+                      <td>{{ row.prediction.predicted_grade }}</td>
+                      <td class="text-nowrap">{{ row.prediction.prediction_date.strftime("%d %b %Y") }}</td>
+                      <td class="text-end text-nowrap no-print">
+                        <a class="btn btn-outline-secondary btn-sm"
+                           href="{{ url_for('main.teacher_history', student_id=row.student.id) }}">History</a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">No students in this group.</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+      {# Students who have not been predicted yet, so the teacher can see who is missing #}
+      {% if not_predicted %}
+        <div class="surface-card p-4">
+          <h3 class="h5 mb-3">
+            No prediction yet
+            <span class="text-muted">({{ not_predicted|length }})</span>
+          </h3>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Roll</th>
+                  <th>Name</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student in not_predicted %}
+                  <tr>
+                    <td class="text-nowrap">{{ student.roll_number }}</td>
+                    <td>{{ student.name }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <a class="btn btn-outline-secondary mt-3 no-print"
+             href="{{ url_for('main.teacher_predict', course=course.id) }}">Go to Predict</a>
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+{% endblock %}

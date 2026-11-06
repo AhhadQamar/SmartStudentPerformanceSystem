@@ -134,10 +134,11 @@ def train_model():
         "trained_at": datetime.now().isoformat(timespec="seconds"),
     }
 
-    # pickle turns the Python objects into a file, so the model can be reused.
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with MODEL_PATH.open("wb") as file:
+    temp_path = MODEL_PATH.with_suffix(".tmp")
+    with temp_path.open("wb") as file:
         pickle.dump(result, file)
+    temp_path.replace(MODEL_PATH)
 
     write_log(result)
     return result

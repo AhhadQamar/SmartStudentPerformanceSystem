@@ -8,7 +8,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from .config_grading import ATTENDANCE_THRESHOLD, MAX_MARKS
 from .constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from .extensions import db
-from .ml import ModelNotAvailableError, predict_grade
+from .ml import (
+    MINIMUM_ACCURACY,
+    ModelNotAvailableError,
+    TrainingError,
+    load_model,
+    predict_grade,
+    train_model,
+)
 from .models import Attendance, Course, Enrollment, Marks, Prediction, Student, User
 from .utils import (
     GradeConfigError,
@@ -867,3 +874,106 @@ def teacher_history(student_id):
         )
 
     return render_template("teacher_history.html", student=student, rows=rows)
+
+
+# Page that shows every student of a course grouped by risk level,
+# using each student's most recent prediction.
+# The URL carries the course: /teacher/risk-report?course=1
+@main.route("/teacher/risk-report")
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_risk_report():
+    # The courses for the dropdown: only this teacher's own.
+    my_courses = (
+        Course.query.filter_by(teacher_id=session["user_id"])
+        .order_by(Course.course_code)
+        .all()
+    )
+
+    course_id = request.args.get("course", "")
+
+    # Find the chosen course and check it belongs to this teacher.
+    course = None
+    if course_id.isdigit():
+        course = Course.query.get(int(course_id))
+        if course is None or course.teacher_id != session["user_id"]:
+            flash("Course not found.", "danger")
+            return redirect(url_for("main.teacher_risk_report"))
+
+    # High comes first, because those students need help the most.
+    groups = {"High": [], "Medium": [], "Low": []}
+    not_predicted = []  # students who have no prediction yet
+
+    if course is not None:
+        for enrollment in course.enrollments:
+            student = enrollment.student
+
+            # The most recent prediction of this student in this course.
+            latest = (
+                Prediction.query.filter_by(student_id=student.id, course_id=course.id)
+                .order_by(Prediction.prediction_date.desc(), Prediction.id.desc())
+                .first()
+            )
+
+            if latest is None:
+                not_predicted.append(student)
+            else:
+                groups[latest.risk_level].append(
+                    {"student": student, "prediction": latest}
+                )
+
+        # Put the names in A-Z order inside each group.
+        for level in groups:
+            groups[level].sort(key=lambda row: row["student"].name.lower())
+        not_predicted.sort(key=lambda student: student.name.lower())
+
+    predicted_count = len(groups["High"]) + len(groups["Medium"]) + len(groups["Low"])
+
+    return render_template(
+        "teacher_risk_report.html",
+        my_courses=my_courses,
+        course=course,
+        groups=groups,
+        not_predicted=not_predicted,
+        predicted_count=predicted_count,
+    )
+
+
+# Page where the admin sees how good the current prediction model is
+# and can train a new one from the data file.
+@main.route("/admin/train", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_train():
+    # POST = the admin pressed "Train model".
+    if request.method == "POST":
+        try:
+            result = train_model()
+        except TrainingError as error:
+            # Bad or missing data. train_model() stopped before saving anything.
+            flash(
+                f"Training stopped: {error} The existing model was not changed.",
+                "danger",
+            )
+        except Exception:
+            flash("Training failed. The existing model was not changed.", "danger")
+        else:
+            if result["flagged_for_review"]:
+                flash(
+                    "Model trained, but its accuracy is too low. It is flagged for review.",
+                    "warning",
+                )
+            else:
+                flash("Model trained and saved.", "success")
+        # Redirect, so refreshing the page does not train again.
+        return redirect(url_for("main.admin_train"))
+
+    # GET = show the saved model, if there is one.
+    try:
+        saved = load_model()
+    except ModelNotAvailableError:
+        saved = None
+
+    return render_template(
+        "admin_train.html", saved=saved, minimum_accuracy=MINIMUM_ACCURACY
+    )
