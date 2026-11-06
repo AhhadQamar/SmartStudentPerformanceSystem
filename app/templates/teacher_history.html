@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Prediction History | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <h1 class="h2 mb-1">Prediction history</h1>
+      <p class="text-muted mb-0">{{ student.roll_number }} &middot; {{ student.name }}</p>
+    </div>
+    <a class="btn btn-outline-secondary px-4"
+       href="{{ url_for('main.dashboard') }}">Back to courses</a>
+  </div>
+  <div class="surface-card p-4">
+    {% if rows %}
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Course</th>
+              <th>Attendance</th>
+              <th>Quiz</th>
+              <th>Assignment</th>
+              <th>Midterm</th>
+              <th>Predicted</th>
+              <th>Risk</th>
+              <th>Actual</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td class="text-nowrap">{{ row.prediction.prediction_date.strftime("%d %b %Y, %H:%M") }}</td>
+                <td class="text-nowrap">{{ row.prediction.course.course_code }}</td>
+                {# row.inputs is the dictionary of four numbers saved with the prediction #}
+                <td>{{ row.inputs.attendance }}%</td>
+                <td>{{ row.inputs.quiz }}%</td>
+                <td>{{ row.inputs.assignment }}%</td>
+                <td>{{ row.inputs.midterm }}%</td>
+                <td>{{ row.prediction.predicted_grade }}</td>
+                <td>
+                  <span class="risk-{{ row.prediction.risk_level|lower }}">{{ row.prediction.risk_level }}</span>
+                </td>
+                <td>
+                  {% if row.actual_grade %}
+                    {{ row.actual_grade }}
+                  {% else %}
+                    <span class="text-muted">Pending</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0">No prediction history available.</p>
+    {% endif %}
+  </div>
+{% endblock %}

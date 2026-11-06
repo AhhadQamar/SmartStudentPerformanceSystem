@@ -105,6 +105,8 @@
             </tr>
           </tbody>
         </table>
+        <a class="btn btn-outline-secondary mt-3"
+           href="{{ url_for('main.teacher_history', student_id=result.student_id) }}">View history</a>
       </div>
     </div>
   {% endif %}

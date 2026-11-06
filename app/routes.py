@@ -138,6 +138,12 @@ def dashboard():
             course_count=course_count,
             teacher_count=teacher_count,
         )
+    if role == ROLE_TEACHER:
+        my_courses = (
+            Course.query.filter_by(teacher_id=session["user_id"])
+            .order_by(Course.course_code)
+            .all()
+        )
         return render_template(
             "teacher_dashboard.html",
             my_courses=my_courses,
@@ -811,3 +817,53 @@ def teacher_predict():
         result=result,
         result_inputs=result_inputs,
     )
+
+
+@main.route("/teacher/history/<int:student_id>")
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_history(student_id):
+    my_course_ids = []
+    for course in Course.query.filter_by(teacher_id=session["user_id"]).all():
+        my_course_ids.append(course.id)
+
+    student = Student.query.get(student_id)
+
+    enrolled = None
+    if student is not None:
+        enrolled = Enrollment.query.filter(
+            Enrollment.student_id == student.id,
+            Enrollment.course_id.in_(my_course_ids),
+        ).first()
+
+    if enrolled is None:
+        flash("Student not found.", "danger")
+        return redirect(url_for("main.dashboard"))
+
+    predictions = (
+        Prediction.query.filter(
+            Prediction.student_id == student.id,
+            Prediction.course_id.in_(my_course_ids),
+        )
+        .order_by(Prediction.prediction_date.desc(), Prediction.id.desc())
+        .all()
+    )
+
+    rows = []
+    for prediction in predictions:
+        marks = Marks.query.filter_by(
+            student_id=student.id, course_id=prediction.course_id
+        ).first()
+        actual_grade = None
+        if marks is not None:
+            actual_grade = marks.grade
+
+        rows.append(
+            {
+                "prediction": prediction,
+                "inputs": json.loads(prediction.input_snapshot),
+                "actual_grade": actual_grade,
+            }
+        )
+
+    return render_template("teacher_history.html", student=student, rows=rows)

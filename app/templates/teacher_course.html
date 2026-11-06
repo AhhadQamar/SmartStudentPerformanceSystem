@@ -18,6 +18,7 @@
               <th>Roll</th>
               <th>Name</th>
               <th>Email</th>
+              <th class="text-end">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -26,6 +27,10 @@
                 <td class="text-nowrap">{{ enrollment.student.roll_number }}</td>
                 <td>{{ enrollment.student.name }}</td>
                 <td>{{ enrollment.student.email }}</td>
+                <td class="text-end text-nowrap">
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="{{ url_for('main.teacher_history', student_id=enrollment.student.id) }}">History</a>
+                </td>
               </tr>
             {% endfor %}
           </tbody>

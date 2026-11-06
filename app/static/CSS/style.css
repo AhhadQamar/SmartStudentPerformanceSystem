@@ -499,3 +499,15 @@ h6 {
 .result-value.risk-high {
   color: var(--accent-danger);
 }
+/* ---------- Risk levels ---------- */
+.risk-low {
+  color: var(--accent-success);
+}
+
+.risk-medium {
+  color: var(--accent-warning);
+}
+
+.risk-high {
+  color: var(--accent-danger);
+}
