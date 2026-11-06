@@ -939,18 +939,14 @@ def teacher_risk_report():
     )
 
 
-# Page where the admin sees how good the current prediction model is
-# and can train a new one from the data file.
 @main.route("/admin/train", methods=["GET", "POST"])
 @login_required
 @role_required(ROLE_ADMIN)
 def admin_train():
-    # POST = the admin pressed "Train model".
     if request.method == "POST":
         try:
             result = train_model()
         except TrainingError as error:
-            # Bad or missing data. train_model() stopped before saving anything.
             flash(
                 f"Training stopped: {error} The existing model was not changed.",
                 "danger",
@@ -965,10 +961,8 @@ def admin_train():
                 )
             else:
                 flash("Model trained and saved.", "success")
-        # Redirect, so refreshing the page does not train again.
         return redirect(url_for("main.admin_train"))
 
-    # GET = show the saved model, if there is one.
     try:
         saved = load_model()
     except ModelNotAvailableError:
