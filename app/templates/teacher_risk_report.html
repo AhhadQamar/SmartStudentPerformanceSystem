@@ -5,7 +5,6 @@
     <h1 class="h2 mb-1">Risk report</h1>
     <p class="text-muted mb-0">Students grouped by the risk level of their latest prediction.</p>
   </div>
-  {# no-print: this card is hidden when the page is printed #}
   <div class="surface-card p-4 mb-4 no-print">
     <form method="GET">
       <div class="row g-3 align-items-end">
@@ -38,12 +37,10 @@
     {% else %}
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h2 class="h4 mb-0">{{ course.course_code }} &middot; {{ course.course_name }}</h2>
-        {# window.print() opens the browser's print window #}
         <button class="btn btn-outline-secondary no-print"
                 type="button"
                 onclick="window.print()">Print report</button>
       </div>
-      {# One card for each risk level: High, Medium, Low #}
       {% for level, rows in groups.items() %}
         <div class="surface-card p-4 mb-4">
           <h3 class="h5 mb-3">

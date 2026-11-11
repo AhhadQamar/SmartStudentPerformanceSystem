@@ -37,8 +37,7 @@ class ModelNotAvailableError(Exception):
 
 
 def load_training_data():
-    # Read the CSV file and check it is usable. Any problem raises a
-    # TrainingError with a clear message, BEFORE anything is trained or saved.
+    # Read the CSV file and check it is usable. Any problem raises an error, which stops training
     if not DATA_PATH.exists():
         raise TrainingError(f"The training data file was not found: {DATA_PATH.name}")
 
@@ -51,9 +50,6 @@ def load_training_data():
         if column not in data.columns:
             raise TrainingError(f"The training data has no '{column}' column.")
 
-    # Turn each input column into numbers. An empty cell becomes NaN
-    # ("not a number") and is allowed: the pipeline fills it in later.
-    # A cell with text in it, like "abc", is a real problem.
     for column in FEATURE_COLUMNS:
         as_numbers = pd.to_numeric(data[column], errors="coerce")
         text_cells = as_numbers.isna() & data[column].notna()
@@ -63,7 +59,6 @@ def load_training_data():
             )
         data[column] = as_numbers
 
-    # A row with no grade is no use for learning.
     data = data.dropna(subset=[TARGET_COLUMN])
 
     if len(data) < MINIMUM_ROWS:
@@ -83,7 +78,6 @@ def train_model():
     grades = data[TARGET_COLUMN]
 
     # Keep 20% of the students back. The model never sees them while learning,
-    # so testing on them shows how it does on students it has not met.
     try:
         # stratify keeps the same mix of grades in both parts
         inputs_train, inputs_test, grades_train, grades_test = train_test_split(
@@ -95,10 +89,6 @@ def train_model():
             inputs, grades, test_size=0.2, random_state=42
         )
 
-    # A pipeline is a list of steps that always run in this order:
-    #  1. fill empty cells with the middle (median) value of that column
-    #  2. scale every column to 0-1, so no column counts more just because its numbers are bigger
-    #  3. the Random Forest: many small decision trees that vote on the grade
     model = Pipeline(
         [
             ("fill_empty", SimpleImputer(strategy="median")),

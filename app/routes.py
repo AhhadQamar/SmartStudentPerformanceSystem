@@ -672,7 +672,6 @@ def admin_enroll(course_id):
             flash("Invalid student ID.", "danger")
             return redirect(url_for("main.admin_enroll", course_id=course_id))
         # Check if the student is already enrolled in the course.
-
         already_enrolled = Enrollment.query.filter_by(
             student_id=student_id, course_id=course_id
         ).first()
@@ -780,7 +779,6 @@ def teacher_predict():
                         course_id=course.id,
                         predicted_grade=grade,
                         risk_level=risk_from_grade(grade),
-                        # json.dumps turns the dictionary into text, so it fits in one column
                         input_snapshot=json.dumps(inputs),
                     )
                     db.session.add(prediction)
@@ -878,7 +876,6 @@ def teacher_history(student_id):
 
 # Page that shows every student of a course grouped by risk level,
 # using each student's most recent prediction.
-# The URL carries the course: /teacher/risk-report?course=1
 @main.route("/teacher/risk-report")
 @login_required
 @role_required(ROLE_TEACHER)
