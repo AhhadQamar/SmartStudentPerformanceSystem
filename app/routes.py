@@ -3,6 +3,7 @@ from datetime import date
 from functools import wraps
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask_wtf.csrf import CSRFError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .config_grading import ATTENDANCE_THRESHOLD, MAX_MARKS
@@ -30,11 +31,19 @@ from .utils import (
 main = Blueprint("main", __name__)
 
 
+# Runs when a form is sent WITHOUT a valid CSRF token (or the token has expired).
+@main.app_errorhandler(CSRFError)
+def handle_csrf_error(error):
+    flash("The form expired or was not valid. Please try again.", "danger")
+    return redirect(request.referrer or url_for("main.index"))
+
+
 # function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if "user_id" not in session:
+            flash("Please log in to continue.", "warning")
             return redirect(url_for("main.login"))
         return view(*args, **kwargs)
 
@@ -76,6 +85,7 @@ def login():
             session["user_id"] = user.id
             session["username"] = user.username
             session["role"] = user.role
+            session.permanent = True  # so the session timeout is used
             return redirect(url_for("main.dashboard"))
         flash("Invalid username or password", "danger")
     return render_template("login.html")

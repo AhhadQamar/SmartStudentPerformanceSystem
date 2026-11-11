@@ -15,6 +15,7 @@
   <div class="collapse" id="add-course">
     <div class="surface-card p-4 mb-4">
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="row g-3">
           <div class="col-md-4">
             <label class="form-label" for="course_code">Course Code</label>

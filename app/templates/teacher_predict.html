@@ -36,6 +36,7 @@
       {% if course.enrollments %}
         {# No action="..." so the form posts to the page's own URL, query string included. #}
         <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="row g-3 align-items-end">
             <div class="col-md-9">
               <label class="form-label" for="student_id">Student</label>

@@ -51,6 +51,7 @@
     </p>
     <form method="POST"
           onsubmit="return confirm('Train a new model from the data file? It replaces the current model.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button class="btn btn-primary px-4" type="submit">Train model</button>
     </form>
   </div>

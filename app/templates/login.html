@@ -6,6 +6,7 @@
       <div class="surface-card p-4 p-lg-5">
         <h1 class="h3 mb-4">Login</h1>
         <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="mb-3">
             <label class="form-label" for="username">Username or email</label>
             <input class="form-control form-control-lg form-control-soft"

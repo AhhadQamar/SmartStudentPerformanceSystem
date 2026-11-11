@@ -16,6 +16,7 @@
         <h2 class="h5 mb-3">Enroll a student</h2>
         {% if available_students %}
           <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             {# Only students who are NOT already in the course are listed #}
             <select class="form-select form-control-soft mb-3"
                     name="student_id"
@@ -57,6 +58,7 @@
                             class="d-inline"
                             action="{{ url_for('main.admin_unenroll', course_id=course.id, student_id=enrollment.student_id) }}"
                             onsubmit="return confirm('Remove this student from the course?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
                       </form>
                     </td>

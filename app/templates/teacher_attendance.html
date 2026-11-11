@@ -80,6 +80,7 @@
       {% else %}
         {# No action="..." so the form posts to the page's own URL, query string included. #}
         <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="table-responsive">
             <table class="table align-middle">
               <thead>
