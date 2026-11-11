@@ -120,7 +120,7 @@ def login():
     return render_template("login.html")
 
 
-# route for the registration page. This will allow the user to register as an admin or teacher. If the user is already logged in, they will be redirected to the dashboard.
+# route for the registration page. Anyone can open it. On POST it checks the form and creates a new user with the teacher role (admin accounts only come from scripts/seed.py).
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":

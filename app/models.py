@@ -8,7 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False, default="user")
 
 
@@ -51,7 +51,8 @@ class Course(db.Model):
     )
 
 
-# Enrollment, Marks, Attendance, and Prediction models represent the relationships between students and courses, including their grades, attendance records, and predicted performance. Each model has a unique constraint to ensure that a student can only have one record per course for each type of data (enrollment, marks, attendance, prediction).
+# Enrollment, Marks, Attendance, and Prediction models link students to courses: who is enrolled, their marks, their attendance and their predicted performance.
+# Enrollment, Marks and Attendance each have a unique constraint so the same record cannot be saved twice. Prediction has none on purpose, because a student can be predicted many times and the history keeps every one.
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
@@ -61,7 +62,8 @@ class Enrollment(db.Model):
     __table_args__ = (db.UniqueConstraint("student_id", "course_id"),)
 
 
-# Marks model represents the grades of a student in a course, including quiz, assignment, midterm, and final exam scores. It also calculates the overall percentage and assigns a grade based on the scores. The unique constraint ensures that a student can only have one set of marks per course.
+# Marks model stores a student's quiz, assignment, midterm and final exam scores for one course, plus the percentage and letter grade worked out from them.
+# The percentage and grade are filled in by recalculate_marks() in utils.py, not by this model. The unique constraint means one set of marks per student per course.
 
 
 class Marks(db.Model):
@@ -92,7 +94,8 @@ class Attendance(db.Model):
     __table_args__ = (db.UniqueConstraint("student_id", "course_id", "record_date"),)
 
 
-# Prediction model represents the predicted performance of a student in a course, including the predicted grade and risk level. It also stores a snapshot of the input data used for the prediction and the date of the prediction. The unique constraint ensures that a student can only have one prediction per course.
+# Prediction model stores one prediction: the predicted grade and risk level for a student in a course, a snapshot of the input data used, and the date.
+# There is no unique constraint, so a student can have many predictions over time (this is the prediction history).
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)

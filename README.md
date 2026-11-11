@@ -1,160 +1,155 @@
 # Smart Student Performance & Prediction System
 
-Final year project for CS619 (Virtual University of Pakistan).
+Final year project, Virtual University of Pakistan (CS619), group `S26PROJECTAFAE9`.
 
-A web application built with Flask. Administrators manage students and courses.
-Teachers record marks and attendance for their own courses. A machine-learning
-model predicts each student's final grade before the final exam and flags the
-students who are at risk.
+A Flask web application that lets administrators manage students and courses, and lets
+teachers record marks and attendance, see grades, and get a machine learning prediction
+of each student's final grade with a Low / Medium / High risk level.
 
-## What it does
+## Quickest way to run
 
-**Administrator**
+Linux / Mac:
 
-- Add, edit, search and delete students
-- Create courses, assign a teacher, enroll and remove students
-- See how accurate the prediction model is, and train a new one
-
-**Teacher** (only for their own courses)
-
-- Enter marks for the quiz, assignment, midterm and final exam
-- Record daily attendance. Students below 75% are flagged
-- View grades: marks, percentage and letter grade for every student
-- Predict a student's final grade and risk level (Low, Medium, High)
-- View a student's prediction history, next to the real grade once it is known
-- Print a risk report that groups the students of a course by risk level
-
-**Everyone**
-
-- Passwords are stored hashed, logins expire after 30 minutes of inactivity,
-  and every form is protected against CSRF
-- The interface is responsive (Bootstrap), for desktop and mobile
-
-## Quick start
-
-```bash
+```
 bash setup.sh
 ```
 
-This creates a virtual environment, installs the packages, trains the model,
-creates the database with demo data and starts the app.
+Windows (double-click or run in a terminal):
 
-Then open `http://127.0.0.1:5000`.
-
-## Manual setup
-
-**1. Create and activate a virtual environment**
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+```
+setup.bat
 ```
 
-**2. Install the packages**
+Both scripts create a virtual environment, install the packages, train the model,
+create the database with demo data, and start the app at http://127.0.0.1:5000.
 
-```bash
-pip install -r requirements.txt
-```
-
-**3. Train the prediction model**
-
-```bash
-python scripts/train_model.py
-```
-
-**4. Create the database with demo data**
-
-```bash
-python scripts/seed.py
-```
-
-Warning: this deletes everything in the database and creates it again.
-
-**5. Start the app**
-
-```bash
-flask run
-```
-
-The submitted zip already contains a database with demo data
-(`instance/students.db`), so steps 3 and 4 are only needed to start fresh.
+> **Warning:** the setup scripts and `scripts/seed.py` wipe the database and recreate the
+> demo data. Do not run them if you want to keep data you added yourself.
 
 ## Demo accounts
 
-| Role                 | Email                       | Password  |
-| -------------------- | --------------------------- | --------- |
-| Administrator        | admin@school.com            | Admin@123 |
-| Teacher              | teacher1@school.com         | Valid@123 |
-| Teacher (no courses) | existing.teacher@school.com | Valid@123 |
+| Role    | Username / email                         | Password    |
+|---------|------------------------------------------|-------------|
+| Admin   | `admin` / `admin@school.com`             | `Admin@123` |
+| Teacher | `teacher1` / `teacher1@school.com`       | `Valid@123` |
+| Teacher | `existing_teacher` / `existing.teacher@school.com` | `Valid@123` |
 
-Anyone can sign up from the Sign Up page, but that always creates a **teacher**.
-Administrator accounts are only created by the seed script.
+New accounts created from the Register page are always teachers. Admin accounts are only
+created by the seed script.
 
-The demo data has three courses (CS301, CS302, CS303) taught by teacher1.
-CS301 has 10 students with marks, attendance and predictions. CS302 and CS303
-have students but no marks, so they show the empty states.
+The demo data has three courses (CS301 Data Structures, CS302 Databases, CS303 Software
+Engineering), all taught by `teacher1`, and a set of students with marks, attendance and
+saved predictions.
 
-## How grades are worked out
+## Manual setup
 
-All the grading rules are in `app/config_grading.py`.
+1. Create and activate a virtual environment
 
-| Part       | Out of | Weight |
-| ---------- | ------ | ------ |
-| Quiz       | 10     | 10%    |
-| Assignment | 20     | 20%    |
-| Midterm    | 30     | 30%    |
-| Final exam | 40     | 40%    |
+   ```
+   python -m venv .venv
+   source .venv/bin/activate        # Linux / Mac
+   .venv\Scripts\activate           # Windows
+   ```
 
-Grades: A from 80%, B from 65%, C from 50%, D from 40%, otherwise F.
-A grade is only shown when all four marks have been entered.
+2. Install the packages
 
-## How the prediction works
+   ```
+   pip install -r requirements.txt
+   ```
 
-The model gets four numbers for a student, all as percentages: attendance, quiz,
-assignment and midterm. It never sees the final exam. A Random Forest
-(scikit-learn) predicts the final grade, and the grade gives the risk level:
-A or B is Low, C is Medium, D or F is High.
+3. Train the model (creates `app/ml_models/model.pkl` and `logs/training.log`)
 
-- The training data is **synthetic**. No real student records were available,
-  so `scripts/generate_dataset.py` makes 300 students using the same grading
-  rules as the app and a fixed random seed, so the file can be reproduced.
-- The model is tested on 20% of the students that it never saw while learning.
-  It reaches about 73% accuracy (precision about 70%, recall about 69%).
-- Retrain it from the **Model** page (administrator) or with
-  `python scripts/train_model.py`. Each run is added to `logs/training.log`.
-  If the data file is bad, training stops and the existing model is kept.
+   ```
+   python scripts/train_model.py
+   ```
+
+4. Create the database with demo data (creates `instance/students.db`)
+
+   ```
+   python scripts/seed.py
+   ```
+
+5. Start the app
+
+   ```
+   flask run
+   ```
+
+   Then open http://127.0.0.1:5000. (If Flask cannot find the app, set `FLASK_APP=app`.)
+
+The trained model (`app/ml_models/model.pkl`) and the seeded database (`instance/students.db`)
+are already included in the repository, so steps 3 and 4 can be skipped on a fresh copy.
+Running them is harmless, it just rebuilds both from scratch.
+
+## Features
+
+**Admin**
+- Add, edit, search and delete students
+- Create courses, assign a teacher, enroll and unenroll students
+- Retrain the prediction model and see its accuracy, precision and recall
+
+**Teacher** (only for their own courses)
+- Enter and edit marks (quiz, assignment, midterm, final) with validation against the maximum
+- Record attendance per date; students below 75% are flagged
+- View grades per course, sortable by name, roll number or grade
+- Predict a student's final grade and risk level from their stored marks and attendance
+- View a student's prediction history, with the actual grade once it is known
+- Risk report grouping students into Low / Medium / High, with a Print button
+
+**Everyone**
+- Login with username or email, password rules on registration, CSRF protection,
+  idle session timeout (30 minutes), 404 and 500 error pages
+
+## How grading and prediction work
+
+- Marks are out of quiz 10, assignment 20, midterm 30, final 40. These weights add up to 100,
+  so the final percentage is the sum of the marks.
+- Grade scale: A 80+, B 65+, C 50+, D 40+, F below 40. A grade is only calculated when all
+  four components have marks.
+- All of this is set in `app/config_grading.py`.
+- The model predicts the final grade **before the final exam** from four percentages:
+  attendance, quiz, assignment and midterm. It is a scikit-learn pipeline
+  (median imputer, MinMax scaler, Random Forest).
+- Risk level comes from the predicted grade: A or B is Low, C is Medium, D or F is High.
+
+### About the training dataset
+
+`data/student_performance.csv` is **synthetic**. It was generated by
+`scripts/generate_dataset.py` (300 students, fixed random seed) because real student records
+were not available. The reported accuracy therefore describes how well the model learned this
+generated data, not real students. To regenerate it, run from the project root:
+
+```
+python scripts/generate_dataset.py
+python scripts/train_model.py
+```
+
+Training uses an 80/20 train/test split. If accuracy on the test part is below 60%, a warning is
+written to `logs/training.log` and the model is flagged for review.
 
 ## Project structure
 
 ```
 app/
-  __init__.py        creates the app (settings, CSRF, session timeout)
-  routes.py          every page of the application
-  models.py          the database tables
-  config_grading.py  weights, maximum marks, grade scale, risk levels
-  constants.py       role names, attendance statuses, timeout
-  utils.py           grade, attendance and prediction-input calculations
-  ml.py              training and using the prediction model
-  extensions.py      database and CSRF objects
-  ml_models/         the trained model (model.pkl)
-  templates/         the HTML pages
-  static/CSS/        the stylesheet
-data/                training data (student_performance.csv)
-scripts/
-  seed.py            creates the database with demo data
-  generate_dataset.py  makes the training data
-  train_model.py     trains the model
-instance/            the SQLite database (students.db)
-logs/                training.log
+  __init__.py          app factory (create_app), settings, session timeout
+  routes.py            all pages (one blueprint called "main")
+  models.py            database tables (User, Student, Course, Enrollment, Marks, Attendance, Prediction)
+  utils.py             helper functions: grades, attendance %, password rules, prediction inputs
+  ml.py                training, loading and predicting with the model
+  config_grading.py    marks, weights, grade scale, risk map, attendance threshold
+  constants.py         role names, attendance statuses, session timeout
+  ml_models/model.pkl  the trained model
+  templates/           HTML pages (Jinja)
+  static/CSS/          stylesheet
+data/                  training dataset (synthetic)
+scripts/               train_model.py, seed.py, generate_dataset.py
+instance/students.db   SQLite database (seeded demo data)
+run.py                 alternative way to start the app
+setup.sh / setup.bat   one-step setup for Linux/Mac and Windows
 ```
 
-## Notes
+## Technology
 
-- **HTTPS:** the development server uses plain HTTP. For a real deployment run
-  the app behind an HTTPS reverse proxy (for example Nginx with a TLS
-  certificate) and set the `SECRET_KEY` environment variable to a long random
-  value.
-- **Browsers:** designed for current versions of Chrome, Firefox and Edge.
-- **Security:** database access goes through SQLAlchemy only (no raw SQL), and
-  Jinja escapes everything it prints, which protects against SQL injection and
-  XSS.
+Python, Flask 3.1.1, Flask-SQLAlchemy 3.1.1, Flask-WTF (CSRF protection), SQLite,
+Jinja templates, Bootstrap 5.3.3 (loaded from a CDN, so the pages need an internet
+connection to look right), scikit-learn 1.6.1, pandas 2.2.3.

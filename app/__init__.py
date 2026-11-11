@@ -2,11 +2,9 @@ import os
 from datetime import timedelta
 
 from flask import Flask
-from werkzeug.security import generate_password_hash
 
 from .constants import SESSION_TIMEOUT_MINUTES
 from .extensions import csrf, db
-from .models import User
 from .routes import main
 
 
