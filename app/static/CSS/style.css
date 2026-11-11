@@ -11,7 +11,7 @@
   --border-input: #54546d;
   --border-hover: #938aa9;
 
-  /* text (muted) 
+  /* text (muted) */
   --text-primary: #dcd7ba;
   --text-bright: #eae5c8;
   --text-muted: #9a9888;
@@ -26,10 +26,14 @@
   --accent-warning: #e6c384;
 
   /* corners */
-  --radius-sm: 0.3rem;
-  --radius-md: 0.4rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.65rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.3rem;
+  --radius-lg: 0.4rem;
+  --radius-xl: 0.45rem;
+}
+
+html {
+  color-scheme: dark;
 }
 
 /* ---------- Page ---------- */
@@ -41,8 +45,11 @@ body {
     -apple-system,
     "Segoe UI",
     sans-serif;
+  font-size: 0.97rem;
+  line-height: 1.6;
   color: var(--text-primary);
   background: var(--bg-base);
+  -webkit-font-smoothing: antialiased;
 }
 
 .app-shell {
@@ -69,22 +76,15 @@ a:hover {
 }
 
 /* ---------- Navbar ---------- */
-/* A bar with a gap around it that stays at the top while you scroll. */
+/* A full width bar that stays at the top while you scroll. */
 .app-navbar {
   position: sticky;
-  top: 0.75rem;
+  top: 0;
   z-index: 10;
-  width: calc(100% - 1.5rem);
-  max-width: 1140px;
-  margin: 0.75rem auto 0;
+  width: 100%;
   background: var(--bg-navbar);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-}
-
-.app-navbar .container {
-  padding-left: 1.25rem;
-  padding-right: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
 }
 
 .app-navbar .navbar-brand {
@@ -120,16 +120,22 @@ a:hover {
   padding: 0.45rem 0.85rem;
   border-radius: var(--radius-md);
   color: var(--text-muted);
+  font-size: 0.93rem;
   font-weight: 500;
   transition:
     color 0.12s ease,
     background-color 0.12s ease;
 }
 
-.app-nav-link:hover,
+.app-nav-link:hover {
+  color: var(--text-bright);
+  background: var(--bg-hover);
+}
+
 .app-nav-link.active {
   color: var(--text-bright);
   background: var(--bg-hover);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
 /* The S2P logo */
@@ -202,10 +208,16 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Lora", Georgia, serif;
   color: var(--text-bright);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+/* the big page titles keep the serif, everything smaller uses the body font */
+h1,
+h2 {
+  font-family: "Lora", Georgia, serif;
 }
 
 .text-muted {
@@ -233,7 +245,11 @@ h6 {
   background-color: var(--bg-input);
   color: var(--text-bright);
   border-color: var(--accent);
-  box-shadow: none;
+  box-shadow: 0 0 0 3px rgba(126, 156, 216, 0.18);
+}
+
+.form-control-soft:hover:not(:focus) {
+  border-color: var(--border-hover);
 }
 
 .form-control-soft::placeholder {
@@ -309,15 +325,19 @@ h6 {
 }
 
 .table thead th {
-  padding-bottom: 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding-bottom: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-muted);
+  border-bottom: 1px solid var(--border-input);
 }
 
 .table tbody td {
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .table tbody tr:last-child td {
@@ -348,10 +368,10 @@ h6 {
 
 .stat-number {
   margin-bottom: 0.4rem;
-  font-family: "Lora", Georgia, serif;
-  font-size: 2.5rem;
-  font-weight: 600;
+  font-size: 2.25rem;
+  font-weight: 700;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
   color: var(--text-bright);
 }
 
@@ -430,8 +450,8 @@ h6 {
 
 .step-number {
   width: 2rem;
-  font-family: "Lora", Georgia, serif;
   font-size: 1.5rem;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--accent);
 }
@@ -452,7 +472,8 @@ h6 {
 
 .result-value {
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.2;
   color: var(--accent);
 }
 
@@ -488,18 +509,6 @@ h6 {
   box-shadow: none;
 }
 /* ---------- Risk levels ---------- */
-.result-value.risk-low {
-  color: var(--accent-success);
-}
-
-.result-value.risk-medium {
-  color: var(--accent-warning);
-}
-
-.result-value.risk-high {
-  color: var(--accent-danger);
-}
-/* ---------- Risk levels ---------- */
 .risk-low {
   color: var(--accent-success);
 }
@@ -511,6 +520,135 @@ h6 {
 .risk-high {
   color: var(--accent-danger);
 }
+/* ---------- Layout ---------- */
+/* Page titles get a line under them, so every page starts the same way. */
+.page-header {
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+}
+
+/* Wide screens, logged in: the navbar becomes a sidebar on the left. */
+@media (min-width: 992px) {
+  body:has(.app-navbar .gap-1) {
+    padding-left: 15rem;
+  }
+
+  .app-navbar:has(.gap-1) {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 15rem;
+    overflow-y: auto;
+    border-bottom: 0;
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .app-navbar:has(.gap-1) > .container {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    max-width: none;
+    height: 100%;
+    padding: 1.5rem 1rem;
+  }
+
+  .app-navbar:has(.gap-1) .navbar-brand {
+    display: flex;
+    align-items: center;
+    margin: 0 0 1.75rem 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .app-navbar:has(.gap-1) .navbar-collapse {
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+  }
+
+  .app-navbar .gap-1 {
+    flex-direction: column !important;
+    margin: 0 !important;
+  }
+
+  /* more room between the sidebar and the page */
+  body:has(.app-navbar .gap-1) .container:not(.app-navbar .container) {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+
+  body:has(.app-navbar .gap-1) main.container {
+    padding-top: 1.5rem !important;
+  }
+
+  .app-navbar:has(.gap-1) .app-nav-link {
+    padding: 0.55rem 0.8rem;
+  }
+
+  .app-navbar:has(.gap-1) .app-nav-link.active {
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+
+  /* the role tag and Logout sit at the bottom of the sidebar */
+  .app-navbar:has(.gap-1) .ms-lg-auto {
+    justify-content: space-between;
+    margin: auto 0 0 !important;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
+/* Landing page: the three steps go side by side instead of one under the other. */
+@media (min-width: 768px) {
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .steps li {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem 1.5rem 0 0;
+    border-top: 0;
+  }
+
+  .steps li + li {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--border-subtle);
+  }
+}
+
+/* Admin dashboard: the three links become three tiles in a row. */
+@media (min-width: 768px) {
+  .surface-card:has(> .manage-row) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    overflow: hidden;
+  }
+
+  .manage-row {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 9rem;
+  }
+
+  .manage-row + .manage-row {
+    border-top: 0;
+    border-left: 1px solid var(--border-subtle);
+  }
+}
+
 /* ---------- Printing ---------- */
 /* When the page is printed: no navbar, footer or buttons, and dark text on white paper. */
 @media print {
@@ -523,6 +661,7 @@ h6 {
   body {
     background: white;
     color: black;
+    padding-left: 0 !important;
   }
 
   .surface-card {
@@ -553,9 +692,8 @@ h6 {
 
 .error-code {
   margin-bottom: 0.5rem;
-  font-family: "Lora", Georgia, serif;
   font-size: 4rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   color: var(--accent);
 }
