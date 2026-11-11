@@ -8,7 +8,8 @@ from .extensions import csrf, db
 from .routes import main
 
 
-def create_app():
+# test_config is optional, the tests use it to give the app a temporary database and turn csrf off. The normal app is started without it
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///students.db"
 
@@ -21,6 +22,10 @@ def create_app():
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
         minutes=SESSION_TIMEOUT_MINUTES
     )
+
+    # if the tests gave us settings, use them instead of the normal ones
+    if test_config:
+        app.config.update(test_config)
 
     db.init_app(app)
     csrf.init_app(app)

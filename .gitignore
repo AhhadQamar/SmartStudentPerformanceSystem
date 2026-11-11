@@ -3,7 +3,5 @@ __pycache__/
 .venv/
 venv/
 .direnv/
-# logs/ is created by training and is different on every machine, so it is not committed.
 logs/
-# NOTE: instance/ (the seeded students.db) is committed on purpose, because the
-# final submission must include the database.
+.pytest_cache/

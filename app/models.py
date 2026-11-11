@@ -51,8 +51,8 @@ class Course(db.Model):
     )
 
 
-# Enrollment, Marks, Attendance, and Prediction models link students to courses: who is enrolled, their marks, their attendance and their predicted performance.
-# Enrollment, Marks and Attendance each have a unique constraint so the same record cannot be saved twice. Prediction has none on purpose, because a student can be predicted many times and the history keeps every one.
+# Enrollment, Marks, Attendance and Prediction connect students to courses. They store who is enrolled, the marks, the attendance and the predictions.
+# Enrollment, Marks and Attendance have a unique constraint so the same record can't be saved twice. Prediction doesn't, because a student can be predicted many times and we keep all of them as history.
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)
@@ -62,8 +62,8 @@ class Enrollment(db.Model):
     __table_args__ = (db.UniqueConstraint("student_id", "course_id"),)
 
 
-# Marks model stores a student's quiz, assignment, midterm and final exam scores for one course, plus the percentage and letter grade worked out from them.
-# The percentage and grade are filled in by recalculate_marks() in utils.py, not by this model. The unique constraint means one set of marks per student per course.
+# Marks model stores the quiz, assignment, midterm and final marks of a student in a course, plus the percentage and grade that are worked out from them.
+# the percentage and grade are filled in by recalculate_marks() in utils.py. The unique constraint means one set of marks per student per course.
 
 
 class Marks(db.Model):
@@ -94,8 +94,8 @@ class Attendance(db.Model):
     __table_args__ = (db.UniqueConstraint("student_id", "course_id", "record_date"),)
 
 
-# Prediction model stores one prediction: the predicted grade and risk level for a student in a course, a snapshot of the input data used, and the date.
-# There is no unique constraint, so a student can have many predictions over time (this is the prediction history).
+# Prediction model stores one prediction: the predicted grade, the risk level, the input values that were used and the date.
+# no unique constraint here on purpose, a student can be predicted many times and that is the prediction history.
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"), nullable=False)

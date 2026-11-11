@@ -1,7 +1,7 @@
 @echo off
-REM Windows version of setup.sh: creates the venv, installs packages,
+REM windows version of setup.sh, makes the venv, installs the packages,
 REM trains the model, seeds the database and starts the app.
-REM WARNING: seeding wipes the database and recreates the demo data.
+REM careful: seeding deletes the database and makes the demo data again.
 
 echo ==================================
 echo  Smart Student Performance System

@@ -120,7 +120,7 @@ def login():
     return render_template("login.html")
 
 
-# route for the registration page. Anyone can open it. On POST it checks the form and creates a new user with the teacher role (admin accounts only come from scripts/seed.py).
+# route for the registration page. Anyone can open it. On POST it checks the form and makes a new user with the teacher role (admin accounts only come from seed.py).
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":

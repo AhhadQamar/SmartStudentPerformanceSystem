@@ -18,6 +18,7 @@
           pandas
           numpy
           flask-wtf
+          pytest
         ]
     );
   in {

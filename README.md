@@ -143,10 +143,25 @@ app/
   static/CSS/          stylesheet
 data/                  training dataset (synthetic)
 scripts/               train_model.py, seed.py, generate_dataset.py
+tests/                 pytest tests (one per Design Document test case)
+docs/test_results.txt  saved output of the test run
 instance/students.db   SQLite database (seeded demo data)
 run.py                 alternative way to start the app
 setup.sh / setup.bat   one-step setup for Linux/Mac and Windows
 ```
+
+## Running the tests
+
+The tests use a temporary database and a temporary model, so they never touch your real data.
+
+```
+pip install -r requirements-dev.txt
+python -m pytest -v
+```
+
+There is one test for each test case in the Design Document (named like
+`test_TC_UC03_02_mark_above_the_maximum`), plus a few extra tests for permissions and security.
+The saved output of a run is in `docs/test_results.txt`.
 
 ## Technology
 
