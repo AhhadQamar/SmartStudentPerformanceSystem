@@ -17,6 +17,7 @@
           scikit-learn
           pandas
           numpy
+          faskl-wtf
         ]
     );
   in {
