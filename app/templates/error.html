@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}{{ code }} | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="surface-card error-card p-5 text-center mx-auto">
+    <p class="error-code">{{ code }}</p>
+    <h1 class="h3 mb-2">{{ title }}</h1>
+    <p class="text-muted mb-4">{{ message }}</p>
+    {% if session.get('user_id') %}
+      <a class="btn btn-primary px-4" href="{{ url_for('main.dashboard') }}">Go to dashboard</a>
+    {% else %}
+      <a class="btn btn-primary px-4" href="{{ url_for('main.index') }}">Go to home page</a>
+    {% endif %}
+  </div>
+{% endblock %}

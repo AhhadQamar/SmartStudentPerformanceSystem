@@ -38,6 +38,35 @@ def handle_csrf_error(error):
     return redirect(request.referrer or url_for("main.index"))
 
 
+# Runs when a 404 error occurs (page not found).
+@main.app_errorhandler(404)
+def page_not_found(error):
+    return (
+        render_template(
+            "error.html",
+            code=404,
+            title="Page Not Found",
+            message="The page you are looking for does not exist.",
+        ),
+        404,
+    )
+
+
+# shows a 500 error page when an internal server error occurs.
+@main.app_errorhandler(500)
+def server_error(error):
+    db.session.rollback()  # undo any database changes that caused the error
+    return (
+        render_template(
+            "error.html",
+            code=500,
+            title="Internal Server Error",
+            message="An unexpected error occurred. Please try again later.",
+        ),
+        500,
+    )
+
+
 # function to check is the user is logged in or not. If not logged in, redirect to login page. If logged in, allow access to the view function.
 def login_required(view):
     @wraps(view)

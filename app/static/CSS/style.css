@@ -545,3 +545,17 @@ h6 {
     --bs-table-border-color: #bbb;
   }
 }
+
+/* ---------- Error pages ---------- */
+.error-card {
+  max-width: 32rem;
+}
+
+.error-code {
+  margin-bottom: 0.5rem;
+  font-family: "Lora", Georgia, serif;
+  font-size: 4rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--accent);
+}
