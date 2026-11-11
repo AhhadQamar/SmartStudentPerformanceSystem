@@ -559,3 +559,11 @@ h6 {
   line-height: 1;
   color: var(--accent);
 }
+/* ---------- Navbar menu button (small screens) ---------- */
+.app-navbar .navbar-toggler {
+  border-color: var(--border-input);
+}
+
+.app-navbar .navbar-toggler:focus {
+  box-shadow: none;
+}
