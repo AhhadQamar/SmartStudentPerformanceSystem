@@ -18,7 +18,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
 
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAME_SITE"] = "Lax"
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     # so only an idle user is logged out after SESSIONTIMEOUT_MINUTES, not a user who is actively using the app
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
         minutes=SESSION_TIMEOUT_MINUTES
