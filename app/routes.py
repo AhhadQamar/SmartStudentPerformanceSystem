@@ -1,12 +1,23 @@
+import csv
+import io
 import json
 from datetime import date
 from functools import wraps
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    Response,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from flask_wtf.csrf import CSRFError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .config_grading import ATTENDANCE_THRESHOLD, MAX_MARKS
+from .config_grading import ATTENDANCE_THRESHOLD, GRADE_SCALE, MAX_MARKS, WEIGHTS
 from .constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from .extensions import db
 from .ml import (
@@ -19,12 +30,15 @@ from .ml import (
 )
 from .models import Attendance, Course, Enrollment, Marks, Prediction, Student, User
 from .utils import (
+    EDITABLE_GRADES,
     GradeConfigError,
     attendance_percentage,
     build_prediction_inputs,
     check_password_rules,
     recalculate_marks,
     risk_from_grade,
+    save_grading_settings,
+    validate_grading,
 )
 
 # setting up the main blueprint for the app.
@@ -913,6 +927,35 @@ def teacher_history(student_id):
     return render_template("teacher_history.html", student=student, rows=rows)
 
 
+# groups the students of a course by risk level and also returns the students who have no prediction yet.
+# the risk report page and the csv download both use it.
+def risk_groups(course):
+    # High comes first, because those students need help the most.
+    groups = {"High": [], "Medium": [], "Low": []}
+    not_predicted = []  # students who have no prediction yet
+
+    for enrollment in course.enrollments:
+        student = enrollment.student
+
+        # The most recent prediction of this student in this course.
+        latest = (
+            Prediction.query.filter_by(student_id=student.id, course_id=course.id)
+            .order_by(Prediction.prediction_date.desc(), Prediction.id.desc())
+            .first()
+        )
+
+        if latest is None:
+            not_predicted.append(student)
+        else:
+            groups[latest.risk_level].append({"student": student, "prediction": latest})
+
+    # Put the names in A-Z order inside each group.
+    for level in groups:
+        groups[level].sort(key=lambda row: row["student"].name.lower())
+    not_predicted.sort(key=lambda student: student.name.lower())
+    return groups, not_predicted
+
+
 # Page that shows every student of a course grouped by risk level,
 # using each student's most recent prediction.
 @main.route("/teacher/risk-report")
@@ -936,32 +979,10 @@ def teacher_risk_report():
             flash("Course not found.", "danger")
             return redirect(url_for("main.teacher_risk_report"))
 
-    # High comes first, because those students need help the most.
     groups = {"High": [], "Medium": [], "Low": []}
-    not_predicted = []  # students who have no prediction yet
-
+    not_predicted = []
     if course is not None:
-        for enrollment in course.enrollments:
-            student = enrollment.student
-
-            # The most recent prediction of this student in this course.
-            latest = (
-                Prediction.query.filter_by(student_id=student.id, course_id=course.id)
-                .order_by(Prediction.prediction_date.desc(), Prediction.id.desc())
-                .first()
-            )
-
-            if latest is None:
-                not_predicted.append(student)
-            else:
-                groups[latest.risk_level].append(
-                    {"student": student, "prediction": latest}
-                )
-
-        # Put the names in A-Z order inside each group.
-        for level in groups:
-            groups[level].sort(key=lambda row: row["student"].name.lower())
-        not_predicted.sort(key=lambda student: student.name.lower())
+        groups, not_predicted = risk_groups(course)
 
     predicted_count = len(groups["High"]) + len(groups["Medium"]) + len(groups["Low"])
 
@@ -972,6 +993,47 @@ def teacher_risk_report():
         groups=groups,
         not_predicted=not_predicted,
         predicted_count=predicted_count,
+    )
+
+
+# downloads the risk report of a course as a csv file.
+@main.route("/teacher/risk-report/export")
+@login_required
+@role_required(ROLE_TEACHER)
+def teacher_risk_report_export():
+    course_id = request.args.get("course", "")
+    course = Course.query.get(int(course_id)) if course_id.isdigit() else None
+    # same as the risk report page, the course must belong to this teacher.
+    if course is None or course.teacher_id != session["user_id"]:
+        flash("Course not found.", "danger")
+        return redirect(url_for("main.teacher_risk_report"))
+
+    groups, not_predicted = risk_groups(course)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Roll number", "Name", "Risk level", "Predicted grade", "Predicted on"])
+    for level, rows in groups.items():
+        for row in rows:
+            prediction = row["prediction"]
+            writer.writerow(
+                [
+                    row["student"].roll_number,
+                    row["student"].name,
+                    level,
+                    prediction.predicted_grade,
+                    prediction.prediction_date.strftime("%Y-%m-%d"),
+                ]
+            )
+    for student in not_predicted:
+        writer.writerow([student.roll_number, student.name, "No prediction yet", "", ""])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename=risk_report_{course.course_code}.csv"
+        },
     )
 
 
@@ -1007,3 +1069,53 @@ def admin_train():
     return render_template(
         "admin_train.html", saved=saved, minimum_accuracy=MINIMUM_ACCURACY
     )
+
+
+# the grading page. The admin changes the weights and the grade scale here.
+@main.route("/admin/grading", methods=["GET", "POST"])
+@login_required
+@role_required(ROLE_ADMIN)
+def admin_grading():
+    if request.method == "POST":
+        # a value that is not a whole number becomes None, validate_grading() reports it as a problem
+        weights = {name: to_whole_number(request.form.get(f"weight_{name}")) for name in MAX_MARKS}
+        minimums = {
+            letter: to_whole_number(request.form.get(f"min_{letter}"))
+            for letter in EDITABLE_GRADES
+        }
+
+        problems = validate_grading(weights, minimums)
+        if problems:
+            for problem in problems:
+                flash(problem, "danger")
+            # show the page again with what was typed
+            return render_template(
+                "admin_grading.html",
+                max_marks=MAX_MARKS,
+                weights={n: request.form.get(f"weight_{n}", "") for n in MAX_MARKS},
+                minimums={l: request.form.get(f"min_{l}", "") for l in EDITABLE_GRADES},
+            )
+
+        save_grading_settings(weights, minimums)
+        flash(
+            "Grading settings saved. All grades were recalculated. "
+            "Retrain the prediction model so it matches the new scale.",
+            "success",
+        )
+        return redirect(url_for("main.admin_grading"))
+
+    current_minimums = {letter: minimum for minimum, letter in GRADE_SCALE}
+    return render_template(
+        "admin_grading.html",
+        max_marks=MAX_MARKS,
+        weights=WEIGHTS,
+        minimums=current_minimums,
+    )
+
+
+# turns the text into a whole number, or None if it is not one.
+def to_whole_number(text):
+    text = (text or "").strip()
+    if text.isdigit():
+        return int(text)
+    return None

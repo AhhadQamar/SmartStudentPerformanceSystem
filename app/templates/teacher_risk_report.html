@@ -37,9 +37,13 @@
     {% else %}
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h2 class="h4 mb-0">{{ course.course_code }} &middot; {{ course.course_name }}</h2>
-        <button class="btn btn-outline-secondary no-print"
-                type="button"
-                onclick="window.print()">Print report</button>
+        <div class="d-flex gap-2 no-print">
+          <a class="btn btn-outline-secondary"
+             href="{{ url_for('main.teacher_risk_report_export', course=course.id) }}">Download CSV</a>
+          <button class="btn btn-outline-secondary"
+                  type="button"
+                  onclick="window.print()">Print report</button>
+        </div>
       </div>
       {% for level, rows in groups.items() %}
         <div class="surface-card p-4 mb-4">

@@ -81,11 +81,18 @@ The trained model (`app/ml_models/model.pkl`) and the seeded database (`instance
 are already included in the repository, so steps 3 and 4 can be skipped on a fresh copy.
 Running them is harmless, it just rebuilds both from scratch.
 
+## Settings
+
+- `SECRET_KEY` (environment variable): signs the login sessions. If it is not set, a random key is
+  made at every start, so everyone is logged out when the app restarts. Set it for a real deployment.
+- `FLASK_DEBUG=1`: turns on debug mode when starting with `python run.py`. It is off by default.
+
 ## Features
 
 **Admin**
 - Add, edit, search and delete students
 - Create courses, assign a teacher, enroll and unenroll students
+- Change the grading weights and the grade scale (Grading page); all saved grades are recalculated
 - Retrain the prediction model and see its accuracy, precision and recall
 
 **Teacher** (only for their own courses)
@@ -94,7 +101,7 @@ Running them is harmless, it just rebuilds both from scratch.
 - View grades per course, sortable by name, roll number or grade
 - Predict a student's final grade and risk level from their stored marks and attendance
 - View a student's prediction history, with the actual grade once it is known
-- Risk report grouping students into Low / Medium / High, with a Print button
+- Risk report grouping students into Low / Medium / High, with Print and Download CSV buttons
 
 **Everyone**
 - Login with username or email, password rules on registration, CSRF protection,
@@ -106,7 +113,9 @@ Running them is harmless, it just rebuilds both from scratch.
   so the final percentage is the sum of the marks.
 - Grade scale: A 80+, B 65+, C 50+, D 40+, F below 40. A grade is only calculated when all
   four components have marks.
-- All of this is set in `app/config_grading.py`.
+- The weights and the grade scale can be changed by the admin on the **Grading** page. They are
+  stored in the database. `app/config_grading.py` holds the maximum marks and the factory defaults.
+  After changing the scale, retrain the model, because the training data uses the old scale.
 - The model predicts the final grade **before the final exam** from four percentages:
   attendance, quiz, assignment and midterm. It is a scikit-learn pipeline
   (median imputer, MinMax scaler, Random Forest).

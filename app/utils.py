@@ -1,8 +1,18 @@
 # Small helper functions that the routes can call.
 
-from .config_grading import GRADE_SCALE, MAX_MARKS, RISK_BY_GRADE, WEIGHTS
+import json
+
+from .config_grading import (
+    DEFAULT_GRADE_SCALE,
+    DEFAULT_WEIGHTS,
+    GRADE_SCALE,
+    MAX_MARKS,
+    RISK_BY_GRADE,
+    WEIGHTS,
+)
 from .constants import STATUS_PRESENT
-from .models import Attendance, Marks
+from .extensions import db
+from .models import Attendance, GradingSetting, Marks
 
 
 # an exception class for invalid grading configuration
@@ -132,3 +142,75 @@ def build_prediction_inputs(student_id, course_id):
         else:
             inputs[name] = round(value / MAX_MARKS[name] * 100, 1)
     return inputs, missing
+
+
+# the grades the admin can change the minimum of. F always starts at 0 so every percentage gets a grade.
+EDITABLE_GRADES = ["A", "B", "C", "D"]
+
+
+def validate_grading(weights, minimums):
+    # weights is like {"quiz": 10, ...} and minimums is like {"A": 80, ...}, both with whole numbers.
+    # returns a list of problems, an empty list means they are fine.
+    problems = []
+
+    for name in MAX_MARKS:
+        value = weights.get(name)
+        if value is None or value < 0 or value > 100:
+            problems.append(
+                f"The weight of {name} must be a whole number from 0 to 100."
+            )
+    if not problems and sum(weights.values()) != 100:
+        problems.append(
+            f"The weights add up to {sum(weights.values())}, they must add up to 100."
+        )
+
+    previous = 101
+    for letter in EDITABLE_GRADES:
+        value = minimums.get(letter)
+        if value is None or value < 1 or value > 100:
+            problems.append(
+                f"The minimum for {letter} must be a whole number from 1 to 100."
+            )
+            return problems
+        if value >= previous:
+            problems.append(
+                f"The minimum for {letter} must be lower than the one above it."
+            )
+        previous = value
+    return problems
+
+
+def apply_grading_settings(weights, grade_scale):
+    # changes the live settings in place instead of making new ones, because other files imported these same objects
+    WEIGHTS.clear()
+    WEIGHTS.update(weights)
+    GRADE_SCALE[:] = grade_scale
+
+
+def load_grading_settings():
+    # called when the app starts. Uses the saved settings, or the defaults if nothing is saved.
+    rows = {row.key: row.value for row in GradingSetting.query.all()}
+    weights = (
+        json.loads(rows["weights"]) if "weights" in rows else dict(DEFAULT_WEIGHTS)
+    )
+    scale = (
+        json.loads(rows["grade_scale"])
+        if "grade_scale" in rows
+        else list(DEFAULT_GRADE_SCALE)
+    )
+    apply_grading_settings(weights, scale)
+
+
+def save_grading_settings(weights, minimums):
+    # saves the new settings, starts using them and works out every saved grade again. The caller already validated them.
+    scale = [[minimums[letter], letter] for letter in EDITABLE_GRADES] + [[0, "F"]]
+    for key, value in (("weights", weights), ("grade_scale", scale)):
+        row = db.session.get(GradingSetting, key)
+        if row is None:
+            db.session.add(GradingSetting(key=key, value=json.dumps(value)))
+        else:
+            row.value = json.dumps(value)
+    apply_grading_settings(weights, scale)
+    for marks in Marks.query.all():
+        recalculate_marks(marks)
+    db.session.commit()

@@ -107,3 +107,10 @@ class Prediction(db.Model):
 
     input_snapshot = db.Column(db.Text)
     prediction_date = db.Column(db.DateTime, default=datetime.now)
+
+
+# grading settings the admin changed on the grading page. key is "weights" or "grade_scale" and value is the setting as JSON text.
+# if there are no rows the defaults in config_grading.py are used.
+class GradingSetting(db.Model):
+    key = db.Column(db.String(30), primary_key=True)
+    value = db.Column(db.Text, nullable=False)

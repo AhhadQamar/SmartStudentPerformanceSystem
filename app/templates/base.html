@@ -46,6 +46,8 @@
                    href="{{ url_for('main.admin_students') }}">Students</a>
                 <a class="app-nav-link {% if request.endpoint in ['main.admin_courses', 'main.admin_enroll'] %}active{% endif %}"
                    href="{{ url_for('main.admin_courses') }}">Courses</a>
+                <a class="app-nav-link {% if request.endpoint == 'main.admin_grading' %}active{% endif %}"
+                   href="{{ url_for('main.admin_grading') }}">Grading</a>
                 <a class="app-nav-link {% if request.endpoint == 'main.admin_train' %}active{% endif %}"
                    href="{{ url_for('main.admin_train') }}">Model</a>
               {% else %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Grading | Smart Student Performance System{% endblock %}
+{% block content %}
+  <div class="page-header">
+    <h1 class="h2 mb-1">Grading</h1>
+    <p class="text-muted mb-0">How much each part of a course counts, and the percentage needed for each letter grade.</p>
+  </div>
+  <form method="POST"
+        onsubmit="return confirm('Save these settings? Every saved grade will be recalculated.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="surface-card p-4 mb-4">
+      <h2 class="h5 mb-1">Weights</h2>
+      <p class="text-muted mb-3">Whole numbers that must add up to 100. Marks are always entered out of the maximum shown.</p>
+      <div class="row g-3">
+        {% for name, maximum in max_marks.items() %}
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label" for="weight_{{ name }}">{{ name|capitalize }} (out of {{ maximum }})</label>
+            <div class="input-group">
+              <input class="form-control form-control-soft"
+                     type="number"
+                     min="0"
+                     max="100"
+                     step="1"
+                     name="weight_{{ name }}"
+                     id="weight_{{ name }}"
+                     value="{{ weights[name] }}"
+                     required />
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="surface-card p-4 mb-4">
+      <h2 class="h5 mb-1">Grade scale</h2>
+      <p class="text-muted mb-3">The lowest percentage that earns each grade. Each one must be lower than the grade above it. Anything below D is an F.</p>
+      <div class="row g-3">
+        {% for letter in ['A', 'B', 'C', 'D'] %}
+          <div class="col-sm-6 col-lg-3">
+            <label class="form-label" for="min_{{ letter }}">{{ letter }} from</label>
+            <div class="input-group">
+              <input class="form-control form-control-soft"
+                     type="number"
+                     min="1"
+                     max="100"
+                     step="1"
+                     name="min_{{ letter }}"
+                     id="min_{{ letter }}"
+                     value="{{ minimums[letter] }}"
+                     required />
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button class="btn btn-primary px-4" type="submit">Save settings</button>
+  </form>
+{% endblock %}
