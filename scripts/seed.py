@@ -1,31 +1,26 @@
-# Fills the database with demo data so we don't have to type it by hand.
-# WARNING: it erases everything first, then creates fresh data.
-
+import json
 import os
 import sys
+from datetime import date, timedelta
 
-# This script lives in the "scripts" folder, but it needs to import from
-# the "app" folder. This line tells Python to also look in the main folder.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from werkzeug.security import generate_password_hash
 
 from app import create_app
-from app.constants import ROLE_ADMIN, ROLE_TEACHER
+from app.constants import ROLE_ADMIN, ROLE_TEACHER, STATUS_ABSENT, STATUS_PRESENT
 from app.extensions import db
-from app.models import Course, Enrollment, Student, User
+from app.ml import ModelNotAvailableError, predict_grade
+from app.models import Attendance, Course, Enrollment, Marks, Prediction, Student, User
+from app.utils import build_prediction_inputs, recalculate_marks, risk_from_grade
 
 app = create_app()
 
-# Database commands only work inside an "app context". Think of it as
-# "the app is switched on, so db knows which database to talk to".
 with app.app_context():
 
-    # ---- 1. Start fresh: delete all tables, then create them again ----
     db.drop_all()
     db.create_all()
 
-    # ---- 2. Users (passwords are stored hashed, just like in register) ----
     admin = User(
         username="admin",
         email="admin@school.com",
@@ -47,7 +42,6 @@ with app.app_context():
     db.session.add_all([admin, teacher1, existing])
     db.session.commit()  # commit now so these users get their ids
 
-    # ---- 3. Courses, all taught by teacher1 ----
     cs301 = Course(
         course_name="Data Structures", course_code="CS301", teacher_id=teacher1.id
     )
@@ -57,7 +51,6 @@ with app.app_context():
     )
     db.session.add_all([cs301, cs302, cs303])
 
-    # ---- 4. Students: (name, roll number, email, contact) ----
     student_data = [
         ("Sara Khan", "SP24-BSCS-045", "sara.khan@student.edu", "03001234567"),
         ("Ali Hassan", "SP24-BSCS-046", "ali.hassan@student.edu", "03011234567"),
@@ -79,10 +72,6 @@ with app.app_context():
         db.session.add(student)
         students.append(student)  # keep them in a list so we can pick some below
 
-    # ---- 5. Enrollments: who takes which course ----
-    # students[0:10] means "the first 10 students" (positions 0 to 9).
-    # Because of the "backref" in models.py, we can write student=... and
-    # course=... directly instead of looking up ids ourselves.
     for student in students[0:10]:
         db.session.add(
             Enrollment(student=student, course=cs301)
@@ -93,11 +82,87 @@ with app.app_context():
         db.session.add(
             Enrollment(student=student, course=cs303)
         )  # CS303: students 6-10
-    # Students 11 and 12 are not enrolled anywhere yet. That is on purpose:
-    # later we use them to test "student not enrolled in this course".
 
+    marks_data = [
+        (0, 9, 19, 27, 36),  # Sara Khan: everything entered, a strong student
+        (1, 7, 15, 22, 28),
+        (2, 8, 17, 24, None),  # no final exam mark yet
+        (3, 5, 12, 16, 20),
+        (4, 9, 18, 26, None),
+        (5, 4, 9, 12, 15),
+        (6, 3, 7, 10, 12),  # a weak student
+        (7, 6, 13, 18, None),
+        # position 8 (Hira Saeed) is left out on purpose: no marks at all
+        (9, 7, None, None, None),  # Danish Ali: only the quiz so far
+    ]
+
+    for position, quiz, assignment, midterm, final in marks_data:
+        marks = Marks(
+            student=students[position],
+            course=cs301,
+            quiz=quiz,
+            assignment=assignment,
+            midterm=midterm,
+            final=final,
+        )
+        recalculate_marks(
+            marks
+        )  # works out the percentage and grade (or leaves them empty)
+        db.session.add(marks)
+
+    class_days = []
+    day = date.today()
+    while len(class_days) < 10:
+        day = day - timedelta(days=1)
+        if day.weekday() < 5:
+            class_days.append(day)
+
+    # How many of the 10 days each student missed: {position: number of absences}.
+    absences = {0: 0, 1: 1, 2: 1, 3: 3, 4: 0, 5: 4, 6: 5, 7: 2}
+
+    for position, missed in absences.items():
+        for number, class_day in enumerate(class_days):
+            # The first "missed" days of the list count as absent, the rest as present.
+            if number < missed:
+                status = STATUS_ABSENT
+            else:
+                status = STATUS_PRESENT
+
+            db.session.add(
+                Attendance(
+                    student=students[position],
+                    course=cs301,
+                    record_date=class_day,
+                    status=status,
+                )
+            )
     db.session.commit()
+    try:
+        for position in range(8):
+            student = students[position]
+            inputs, missing = build_prediction_inputs(student.id, cs301.id)
+            if missing:
+                continue  # not enough data for this student, so skip them
 
+            grade = predict_grade(
+                inputs["attendance"],
+                inputs["quiz"],
+                inputs["assignment"],
+                inputs["midterm"],
+            )
+            db.session.add(
+                Prediction(
+                    student_id=student.id,
+                    course_id=cs301.id,
+                    predicted_grade=grade,
+                    risk_level=risk_from_grade(grade),
+                    input_snapshot=json.dumps(inputs),
+                )
+            )
+        db.session.commit()
+    except ModelNotAvailableError:
+        print("No trained model found, so no predictions were created.")
+        print("Run: python scripts/train_model.py   then run this script again.")
     print("Done! Demo logins:")
     print("  admin     ->  admin@school.com    /  Admin@123")
     print("  teacher   ->  teacher1@school.com /  Valid@123")
